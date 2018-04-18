@@ -4,8 +4,9 @@
 # 어떻게 진행할까?
 아래 쓰여진 것들을 공부하고 진행할 거에요.
 
-## 사용해볼 기술들
+## 사용해볼 것들
 * Andoroid 개발 패턴
 * constraintLayout 
 * Kotlin
 * Rx
+* 람다
