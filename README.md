@@ -1,12 +1,12 @@
-# WHATISTHIS
- 공부할겸 유튜브 api 로 멜론처럼 음원스트리밍앱 만들어보기
+# 유튜브 뮤직 플레이어
+공부할겸 유튜브 iframe api 로 멜론처럼 음원스트리밍앱 만들어보기
  
 # 어떻게 진행할까?
 아래 쓰여진 것들을 공부하고 진행할 거에요.
 
-## 사용해볼 것들
-* Andoroid 개발 패턴
-* constraintLayout 
-* Kotlin
+## 사용할 것들
+* MVVM
 * Rx
-* 람다
+* Kotlin
+* ACC
+* 4 대 컴포넌트들
