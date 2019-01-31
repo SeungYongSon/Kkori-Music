@@ -258,4 +258,4 @@ cmake-build-*/
 
 # codeStyles - kkori
 .idea/codeStyles
-.idea/runConfigurations
+.idea/runConfigurations.xml
