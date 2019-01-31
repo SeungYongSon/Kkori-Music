@@ -1,6 +1,8 @@
 # Kkori Music
 
-YouTube 를 활용한 음악 스트리밍 어플리케이션  
+YouTube 를 활용한 음악 스트리밍 어플리케이션
+
+사람들이 사용할 수 있게 릴리즈를 목표로 하고 있다.
 
 ## How do I proceed?
 
