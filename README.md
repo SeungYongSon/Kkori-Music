@@ -1,12 +1,29 @@
-# 유튜브 뮤직 플레이어
-Youtube Data API 를 활용한 Youtube Music 만들기
- 
-# 어떻게 진행할까?
-아래 쓰여진 것들을 공부하고 진행할 거에요.
+# Kkori Music
 
-## 기본적으로 사용할 것들
-* MVVM
-* Rx
+YouTube 를 활용한 음악 스트리밍 어플리케이션  
+
+## How do I proceed?
+
+### 1. YouTube Data API 활용
+
+사용자가 키워드를 검색 후 원하는 비디오를 찾을 수 있게 한다.
+
+### 2. 비디오 영상은 빼고 소리만 스트리밍
+
+연구와 삽질이 필요한 사항이다.
+아주 기대되는 사항
+
+### 3. 서비스를 통해 백그라운드에서도 스트리밍
+
+서비스를 제대로 활용할 수 있는 좋은 기회가 되지 않을까 싶다.
+
+### 4. 사용자 편의성 
+
+* 언제든 듣고 있는 비디오의 영상 재생 가능
+* 원하는 비디오를 담아놓는 재생목록
+
+## Things to use basically
 * Kotlin
-* ACC
-* 4 대 컴포넌트들
+* MVP or MVVM Pattern
+* Android Architecture Components
+* Android 4 Main Component
