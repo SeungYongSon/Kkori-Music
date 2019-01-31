@@ -1,10 +1,10 @@
 # 유튜브 뮤직 플레이어
-유튜브 iframe api 로 멜론처럼 음원스트리밍앱 만들어보기
+Youtube Data API 를 활용한 Youtube Music 만들기
  
 # 어떻게 진행할까?
 아래 쓰여진 것들을 공부하고 진행할 거에요.
 
-## 사용할 것들
+## 기본적으로 사용할 것들
 * MVVM
 * Rx
 * Kotlin
