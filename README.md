@@ -26,6 +26,6 @@ YouTube 를 활용한 음악 스트리밍 어플리케이션
 
 ## Things to use basically
 * Kotlin
-* MVP or MVVM Pattern
+* MVP + Clean architecture
 * Android Architecture Components
 * Android 4 Main Component
