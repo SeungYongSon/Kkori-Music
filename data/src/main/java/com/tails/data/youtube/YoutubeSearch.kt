@@ -1,13 +1,12 @@
-package com.tails.presentation.youtube
+package com.tails.data.youtube
 
 import android.os.AsyncTask
 import android.util.Log
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.tails.data.YoutubeVideo
-import com.tails.presentation.utils.Config
-import com.tails.presentation.utils.Util
+import com.tails.data.util.Util
+import com.tails.domain.YoutubeVideo
 import java.io.IOException
 import java.text.NumberFormat
 import java.util.*
@@ -51,14 +50,19 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
     private fun searchVideos() : List<YoutubeVideo>{
         val ytVideos = ArrayList<YoutubeVideo>()
         try {
-            searchList = youtube.search().list(Config.YOUTUBE_SEARCH_LIST_PART)
+            searchList = youtube.search().list(
+                Config.YOUTUBE_SEARCH_LIST_PART
+            )
 
             searchList.q =
                 keywords
             searchList.key = Config.YOUTUBE_API
-            searchList.type = Config.YOUTUBE_SEARCH_LIST_TYPE
-            searchList.maxResults = Config.YOUTUBE_MAX_RESULTS
-            searchList.fields = Config.YOUTUBE_SEARCH_LIST_FIELDS
+            searchList.type =
+                Config.YOUTUBE_SEARCH_LIST_TYPE
+            searchList.maxResults =
+                Config.YOUTUBE_MAX_RESULTS
+            searchList.fields =
+                Config.YOUTUBE_SEARCH_LIST_FIELDS
             searchList.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
 
             if (currentPageToken != null) {

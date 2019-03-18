@@ -1,4 +1,4 @@
-package com.tails.data
+package com.tails.domain
 
 class YoutubeVideo{
     var id = ""

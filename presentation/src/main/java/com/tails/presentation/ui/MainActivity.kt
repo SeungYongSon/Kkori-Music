@@ -6,8 +6,8 @@ import com.google.android.youtube.player.YouTubeBaseActivity
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.tails.R
-import com.tails.presentation.youtube.YoutubeSearch
-import com.tails.presentation.utils.Config
+import com.tails.data.youtube.YoutubeSearch
+import com.tails.data.youtube.Config
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : YouTubeBaseActivity() {

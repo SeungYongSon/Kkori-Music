@@ -1,4 +1,4 @@
-package com.tails.presentation.utils
+package com.tails.data.youtube
 
 object Config{
     const val YOUTUBE_REGEX = "(?:[?&]vi?=|\\/embed\\/|\\/\\d\\d?\\/|\\/vi?\\/|https?:\\/\\/(?:www\\.)?youtu\\.be\\/)([A-Za-z0-9_\\-]{11})"

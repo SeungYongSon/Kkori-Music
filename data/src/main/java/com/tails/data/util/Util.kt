@@ -1,4 +1,4 @@
-package com.tails.presentation.utils
+package com.tails.data.util
 
 import com.google.api.services.youtube.model.SearchResult
 
@@ -17,7 +17,9 @@ object Util {
             hours = isoTime.substring(isoTime.indexOf("T") + 1, isoTime.indexOf("H"))
             minutes = isoTime.substring(isoTime.indexOf("H") + 1, isoTime.indexOf("M"))
             seconds = isoTime.substring(isoTime.indexOf("M") + 1, isoTime.indexOf("S"))
-            return hours + ":" + formatTo2Digits(minutes) + ":" + formatTo2Digits(seconds)
+            return hours + ":" + formatTo2Digits(minutes) + ":" + formatTo2Digits(
+                seconds
+            )
         } else if (!icH && icM && icS) {
             minutes = isoTime.substring(isoTime.indexOf("T") + 1, isoTime.indexOf("M"))
             seconds = isoTime.substring(isoTime.indexOf("M") + 1, isoTime.indexOf("S"))

@@ -44,11 +44,6 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
 
-    // youtube data api
-    implementation('com.google.apis:google-api-services-youtube:v3-rev206-1.25.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-
     implementation project(':data')
     implementation project(':domain')
 }
