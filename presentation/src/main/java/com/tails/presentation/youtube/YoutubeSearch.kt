@@ -1,13 +1,13 @@
-package com.tails.dukkorimusic.youtube
+package com.tails.presentation.youtube
 
 import android.os.AsyncTask
 import android.util.Log
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.tails.dukkorimusic.data.YoutubeVideo
-import com.tails.dukkorimusic.utils.Config
-import com.tails.dukkorimusic.utils.Util
+import com.tails.data.YoutubeVideo
+import com.tails.presentation.utils.Config
+import com.tails.presentation.utils.Util
 import java.io.IOException
 import java.text.NumberFormat
 import java.util.*

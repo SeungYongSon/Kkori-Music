@@ -1,4 +1,4 @@
-package com.tails.dukkorimusic.utils
+package com.tails.presentation.utils
 
 import com.google.api.services.youtube.model.SearchResult
 

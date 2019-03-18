@@ -4,10 +4,12 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.tails.dukkorimusic"
+        applicationId "com.tails"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
@@ -43,10 +45,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
 
     // youtube data api
-    implementation('com.google.api-client:google-api-client-android:1.25.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
     implementation('com.google.apis:google-api-services-youtube:v3-rev206-1.25.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+
+    implementation project(':data')
+    implementation project(':domain')
 }

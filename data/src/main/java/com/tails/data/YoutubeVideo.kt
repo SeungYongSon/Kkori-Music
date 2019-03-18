@@ -1,4 +1,4 @@
-package com.tails.dukkorimusic.data
+package com.tails.data
 
 class YoutubeVideo{
     var id = ""

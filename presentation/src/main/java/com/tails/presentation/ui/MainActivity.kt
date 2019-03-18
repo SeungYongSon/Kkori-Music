@@ -1,12 +1,13 @@
-package com.tails.dukkorimusic
+package com.tails.presentation.ui
 
 import android.os.Bundle
 import android.util.Log
 import com.google.android.youtube.player.YouTubeBaseActivity
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
-import com.tails.dukkorimusic.youtube.YoutubeSearch
-import com.tails.dukkorimusic.utils.Config
+import com.tails.R
+import com.tails.presentation.youtube.YoutubeSearch
+import com.tails.presentation.utils.Config
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : YouTubeBaseActivity() {
@@ -25,7 +26,7 @@ class MainActivity : YouTubeBaseActivity() {
         player.initialize(Config.YOUTUBE_API, listenerY)
 
         YoutubeSearch.apply {
-            this.search("띵")
+            search("띵")
             Log.e("Activity", get().toString())
         }
     }
