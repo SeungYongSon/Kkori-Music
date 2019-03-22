@@ -5,9 +5,9 @@ import android.util.Log
 import com.google.android.youtube.player.YouTubeBaseActivity
 import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
-import com.tails.R
 import com.tails.data.youtube.YoutubeSearch
 import com.tails.data.youtube.Config
+import com.tails.presentation.R
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : YouTubeBaseActivity() {
@@ -19,7 +19,7 @@ class MainActivity : YouTubeBaseActivity() {
         val listenerY = object : YouTubePlayer.OnInitializedListener{
             override fun onInitializationFailure(ypp: YouTubePlayer.Provider?, yp: YouTubeInitializationResult?) {}
             override fun onInitializationSuccess(ypp: YouTubePlayer.Provider?, yp: YouTubePlayer, p2: Boolean) {
-                yp.loadVideo("GBaKmkppD5A")
+                //yp.loadVideo("GBaKmkppD5A")
             }
         }
 

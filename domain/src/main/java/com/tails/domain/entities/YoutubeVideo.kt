@@ -1,12 +1,12 @@
-package com.tails.domain
+package com.tails.domain.entities
 
-class YoutubeVideo{
-    var id = ""
-    var title = ""
-    var thumbnailURL = ""
-    var duration = ""
-    var viewCount = ""
-
+data class YoutubeVideo(
+    var id : String? = null,
+    var title : String? = null,
+    var thumbnailURL : String? = null,
+    var duration : String? = null,
+    var viewCount : String? = null
+){
     override fun toString(): String {
         return """
                 id : $id

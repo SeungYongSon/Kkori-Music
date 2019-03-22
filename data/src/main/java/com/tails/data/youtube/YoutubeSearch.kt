@@ -6,7 +6,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
 import com.tails.data.util.Util
-import com.tails.domain.YoutubeVideo
+import com.tails.domain.entities.YoutubeVideo
 import java.io.IOException
 import java.text.NumberFormat
 import java.util.*
@@ -19,11 +19,11 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
         JacksonFactory()
     ) {}.setApplicationName("Kkori Music").build()
 
-    private lateinit var searchList : YouTube.Search.List
+    private lateinit var searchList: YouTube.Search.List
 
-    private var keywords : String? = null
-    private var currentPageToken : String? = null
-    private var nextPageToken : String? = null
+    private var keywords: String? = null
+    private var currentPageToken: String? = null
+    private var nextPageToken: String? = null
 
     override fun doInBackground(vararg params: String?): List<YoutubeVideo>? {
         if (keywords == null) return null
@@ -47,22 +47,18 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
         this.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR)
     }
 
-    private fun searchVideos() : List<YoutubeVideo>{
+    private fun searchVideos(): List<YoutubeVideo> {
         val ytVideos = ArrayList<YoutubeVideo>()
         try {
             searchList = youtube.search().list(
                 Config.YOUTUBE_SEARCH_LIST_PART
             )
 
-            searchList.q =
-                keywords
+            searchList.q = keywords
             searchList.key = Config.YOUTUBE_API
-            searchList.type =
-                Config.YOUTUBE_SEARCH_LIST_TYPE
-            searchList.maxResults =
-                Config.YOUTUBE_MAX_RESULTS
-            searchList.fields =
-                Config.YOUTUBE_SEARCH_LIST_FIELDS
+            searchList.type = Config.YOUTUBE_SEARCH_LIST_TYPE
+            searchList.maxResults = Config.YOUTUBE_MAX_RESULTS
+            searchList.fields = Config.YOUTUBE_SEARCH_LIST_FIELDS
             searchList.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
 
             if (currentPageToken != null) {
@@ -73,7 +69,7 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
             val pattern = Pattern.compile(Config.YOUTUBE_REGEX)
             val matcher = pattern.matcher(keywords)
 
-            if(matcher.find()){
+            if (matcher.find()) {
                 val singleVideo = youtube.videos().list(Config.YOUTUBE_VIDEO_PART)
                 singleVideo.key = Config.YOUTUBE_API
                 singleVideo.fields = Config.YOUTUBE_VIDEO_FIELDS
@@ -83,31 +79,31 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                 val resp = singleVideo.execute()
                 val videoResults = resp.items
 
-                videoResults.forEach{
+                videoResults.forEach {
                     val item = YoutubeVideo()
 
-                    if(it != null){
+                    if (it != null) {
                         item.title = it.snippet.title
                         item.thumbnailURL = it.snippet.thumbnails.default.url
                         item.id = it.id
 
-                        if(it.statistics != null){
+                        if (it.statistics != null) {
                             val viewsNumber = it.statistics.viewCount
                             val viewsFormatted = NumberFormat.getIntegerInstance().format(viewsNumber) + " views"
                             item.viewCount = viewsFormatted
                         }
 
-                        if(it.contentDetails != null){
+                        if (it.contentDetails != null) {
                             val isoTime = it.contentDetails.duration
                             val time = Util.convertISO8601DurationToNormalTime(isoTime)
                             item.duration = time
                         }
-                    } else{
+                    } else {
                         item.duration = "NA"
                     }
                     ytVideos.add(item)
                 }
-            } else{
+            } else {
                 val videoList = youtube.videos().list(Config.YOUTUBE_VIDEO_LIST_PART)
                 videoList.key = Config.YOUTUBE_API
                 videoList.fields = Config.YOUTUBE_VIDEO_LIST_FIELDS
@@ -124,7 +120,7 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
 
                 var index = 0
                 searchResults.forEach {
-                    if(it.id != null){
+                    if (it.id != null) {
                         val item = YoutubeVideo()
 
                         item.title = it.snippet.title
@@ -151,7 +147,7 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                     }
                 }
             }
-        }catch (e : IOException){
+        } catch (e: IOException) {
             Log.e("YoutubeSearch", "Could not initialize: $e")
             e.printStackTrace()
         }
