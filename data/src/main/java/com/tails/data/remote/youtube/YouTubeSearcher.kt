@@ -1,4 +1,4 @@
-package com.tails.data.youtube
+package com.tails.data.remote.youtube
 
 import android.os.AsyncTask
 import android.util.Log
@@ -6,27 +6,32 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
 import com.tails.data.util.Util
-import com.tails.domain.entities.YoutubeVideo
+import com.tails.domain.entities.YtVideo
 import java.io.IOException
 import java.text.NumberFormat
 import java.util.*
 import java.util.regex.Pattern
 
-object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
+object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
 
     private val youtube = YouTube.Builder(
         NetHttpTransport(),
         JacksonFactory()
     ) {}.setApplicationName("Kkori Music").build()
 
-    private lateinit var searchList: YouTube.Search.List
+    private var searchList: YouTube.Search.List =
+        youtube.search().list(Config.YOUTUBE_SEARCH_LIST_PART).let {
+            it.key = Config.YOUTUBE_API
+            it.type = Config.YOUTUBE_SEARCH_LIST_TYPE
+            it.maxResults = Config.YOUTUBE_MAX_RESULTS
+            it.fields = Config.YOUTUBE_SEARCH_LIST_FIELDS
+            it.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
+        }
 
-    private var keywords: String? = null
-    private var currentPageToken: String? = null
-    private var nextPageToken: String? = null
+    private lateinit var keywords: String
+    private lateinit var nextPageToken: String
 
-    override fun doInBackground(vararg params: String?): List<YoutubeVideo>? {
-        if (keywords == null) return null
+    override fun doInBackground(vararg params: String?): List<YtVideo>? {
         try {
             return searchVideos()
         } catch (e: Exception) {
@@ -36,34 +41,21 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
     }
 
     fun search(keywords: String) {
-        YoutubeSearch.keywords = keywords
+        this.keywords = keywords
+        this.nextPageToken = ""
         this.execute()
     }
 
-    fun search(keywords: String, currentPageToken: String) {
-        YoutubeSearch.keywords = keywords
-        YoutubeSearch.currentPageToken = currentPageToken
-        nextPageToken = null
+    fun searchNext() {
         this.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR)
     }
 
-    private fun searchVideos(): List<YoutubeVideo> {
-        val ytVideos = ArrayList<YoutubeVideo>()
+    private fun searchVideos(): List<YtVideo> {
+        val ytVideos = ArrayList<YtVideo>()
         try {
-            searchList = youtube.search().list(
-                Config.YOUTUBE_SEARCH_LIST_PART
-            )
-
             searchList.q = keywords
-            searchList.key = Config.YOUTUBE_API
-            searchList.type = Config.YOUTUBE_SEARCH_LIST_TYPE
-            searchList.maxResults = Config.YOUTUBE_MAX_RESULTS
-            searchList.fields = Config.YOUTUBE_SEARCH_LIST_FIELDS
-            searchList.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
-
-            if (currentPageToken != null) {
-                searchList.pageToken =
-                    currentPageToken
+            if (nextPageToken.isNotEmpty()) {
+                searchList.pageToken = nextPageToken
             }
 
             val pattern = Pattern.compile(Config.YOUTUBE_REGEX)
@@ -80,7 +72,7 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                 val videoResults = resp.items
 
                 videoResults.forEach {
-                    val item = YoutubeVideo()
+                    val item = YtVideo()
 
                     if (it != null) {
                         item.title = it.snippet.title
@@ -103,6 +95,7 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                     }
                     ytVideos.add(item)
                 }
+                nextPageToken = ""
             } else {
                 val videoList = youtube.videos().list(Config.YOUTUBE_VIDEO_LIST_PART)
                 videoList.key = Config.YOUTUBE_API
@@ -118,10 +111,9 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                 val resp = videoList.execute()
                 val videoResults = resp.items
 
-                var index = 0
                 searchResults.forEach {
                     if (it.id != null) {
-                        val item = YoutubeVideo()
+                        val item = YtVideo()
 
                         item.title = it.snippet.title
                         item.thumbnailURL = it.snippet.thumbnails.default.url
@@ -143,15 +135,13 @@ object YoutubeSearch : AsyncTask<String, Void, List<YoutubeVideo>>() {
                             item.duration = "NA"
                         }
                         ytVideos.add(item)
-                        index++
                     }
                 }
             }
         } catch (e: IOException) {
-            Log.e("YoutubeSearch", "Could not initialize: $e")
+            Log.e("YouTubeSearcher", "Could not initialize: $e")
             e.printStackTrace()
         }
-        Log.e("YoutubeSearch: return ", ytVideos.size.toString())
         return ytVideos
     }
 }

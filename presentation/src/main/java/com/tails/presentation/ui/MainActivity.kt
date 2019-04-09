@@ -2,32 +2,30 @@ package com.tails.presentation.ui
 
 import android.os.Bundle
 import android.util.Log
-import com.google.android.youtube.player.YouTubeBaseActivity
-import com.google.android.youtube.player.YouTubeInitializationResult
-import com.google.android.youtube.player.YouTubePlayer
-import com.tails.data.youtube.YoutubeSearch
-import com.tails.data.youtube.Config
-import com.tails.presentation.R
+import androidx.appcompat.app.AppCompatActivity
+import com.tails.data.remote.youtube.VideoMeta
+import com.tails.data.remote.youtube.YouTubeExtractor
+import com.tails.data.remote.youtube.YouTubeSearcher
+import com.tails.data.remote.youtube.YtFile
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : YouTubeBaseActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(com.tails.presentation.R.layout.activity_main)
 
-        val listenerY = object : YouTubePlayer.OnInitializedListener{
-            override fun onInitializationFailure(ypp: YouTubePlayer.Provider?, yp: YouTubeInitializationResult?) {}
-            override fun onInitializationSuccess(ypp: YouTubePlayer.Provider?, yp: YouTubePlayer, p2: Boolean) {
-                //yp.loadVideo("GBaKmkppD5A")
+        YouTubeSearcher.search("넘쳐흘러")
+        YouTubeSearcher.get().apply {
+            test_text.text = toString()
+            YouTubeSearcher.cancel(false)
+        }
+
+        object : YouTubeExtractor(applicationContext){
+            override fun onExtractionComplete(ytFile: YtFile?, videoMeta: VideoMeta?) {
+                Log.e("ytFile", ytFile.toString())
+                Log.e("videoMeta", videoMeta.toString())
             }
-        }
-
-        player.initialize(Config.YOUTUBE_API, listenerY)
-
-        YoutubeSearch.apply {
-            search("띵")
-            Log.e("Activity", get().toString())
-        }
+        }.extract("RRKJiM9Njr8", parseDashManifest = true, includeWebM = true)
     }
 }

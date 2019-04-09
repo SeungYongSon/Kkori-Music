@@ -1,6 +1,6 @@
 package com.tails.domain.entities
 
-data class YoutubeVideo(
+data class YtVideo(
     var id : String? = null,
     var title : String? = null,
     var thumbnailURL : String? = null,
