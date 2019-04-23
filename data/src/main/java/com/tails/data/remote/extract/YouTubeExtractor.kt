@@ -1,4 +1,4 @@
-package com.tails.data.remote.youtube
+package com.tails.data.remote.extract
 
 import android.content.Context
 import android.os.AsyncTask
@@ -8,6 +8,9 @@ import android.util.Log
 import android.util.SparseArray
 import com.evgenii.jsevaluator.JsEvaluator
 import com.evgenii.jsevaluator.interfaces.JsCallback
+import com.tails.domain.entities.Format
+import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entities.YtFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.ResponseBody
@@ -249,7 +252,9 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, Spar
                             mat = patHlsItag.matcher(line)
                             if (mat.find()) {
                                 val itag = Integer.parseInt(mat.group(1))
-                                val newFile = YtFile(FORMAT_MAP.get(itag), line)
+                                val newFile = YtFile(
+                                    FORMAT_MAP.get(itag), line
+                                )
                                 ytFiles.put(itag, newFile)
                             }
                         }
@@ -409,7 +414,9 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, Spar
                     } else {
                         var url = ytFiles.get(key).url
                         url += "&signature=" + sigs[i]
-                        val newFile = YtFile(FORMAT_MAP.get(key), url)
+                        val newFile = YtFile(
+                            FORMAT_MAP.get(key), url
+                        )
                         ytFiles.put(key, newFile)
                     }
                     i++
@@ -606,7 +613,9 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, Spar
                 } else {
                     continue
                 }
-                val yf = YtFile(FORMAT_MAP.get(itag), url)
+                val yf = YtFile(
+                    FORMAT_MAP.get(itag), url
+                )
                 ytFiles.append(itag, yf)
             }
         }
@@ -647,7 +656,8 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, Spar
         if (mat.find()) {
             viewCount = java.lang.Long.parseLong(mat.group(1))
         }
-        videoMeta = VideoMeta(videoID, title, author, channelId, length, viewCount, isLiveStream)
+        videoMeta =
+            VideoMeta(videoID, title, author, channelId, length, viewCount, isLiveStream)
     }
 
     private fun readDecipherFunctFromCache() {

@@ -1,4 +1,4 @@
-package com.tails.data.remote.youtube
+package com.tails.data.remote.search
 
 import android.os.AsyncTask
 import android.util.Log
@@ -20,12 +20,12 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
     ) {}.setApplicationName("Kkori Music").build()
 
     private var searchList: YouTube.Search.List =
-        youtube.search().list(Config.YOUTUBE_SEARCH_LIST_PART).let {
-            it.key = Config.YOUTUBE_API
-            it.type = Config.YOUTUBE_SEARCH_LIST_TYPE
-            it.maxResults = Config.YOUTUBE_MAX_RESULTS
-            it.fields = Config.YOUTUBE_SEARCH_LIST_FIELDS
-            it.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
+        youtube.search().list(SearchConfig.YOUTUBE_SEARCH_LIST_PART).let {
+            it.key = SearchConfig.YOUTUBE_API
+            it.type = SearchConfig.YOUTUBE_SEARCH_LIST_TYPE
+            it.maxResults = SearchConfig.YOUTUBE_MAX_RESULTS
+            it.fields = SearchConfig.YOUTUBE_SEARCH_LIST_FIELDS
+            it.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
         }
 
     private lateinit var keywords: String
@@ -46,9 +46,7 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
         this.execute()
     }
 
-    fun searchNext() {
-        this.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR)
-    }
+    fun searchNext() = this.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR)
 
     private fun searchVideos(): List<YtVideo> {
         val ytVideos = ArrayList<YtVideo>()
@@ -58,14 +56,14 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
                 searchList.pageToken = nextPageToken
             }
 
-            val pattern = Pattern.compile(Config.YOUTUBE_REGEX)
+            val pattern = Pattern.compile(SearchConfig.YOUTUBE_REGEX)
             val matcher = pattern.matcher(keywords)
 
             if (matcher.find()) {
-                val singleVideo = youtube.videos().list(Config.YOUTUBE_VIDEO_PART)
-                singleVideo.key = Config.YOUTUBE_API
-                singleVideo.fields = Config.YOUTUBE_VIDEO_FIELDS
-                singleVideo.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
+                val singleVideo = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_PART)
+                singleVideo.key = SearchConfig.YOUTUBE_API
+                singleVideo.fields = SearchConfig.YOUTUBE_VIDEO_FIELDS
+                singleVideo.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
                 singleVideo.id = matcher.group(1)
 
                 val resp = singleVideo.execute()
@@ -97,10 +95,10 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
                 }
                 nextPageToken = ""
             } else {
-                val videoList = youtube.videos().list(Config.YOUTUBE_VIDEO_LIST_PART)
-                videoList.key = Config.YOUTUBE_API
-                videoList.fields = Config.YOUTUBE_VIDEO_LIST_FIELDS
-                videoList.set(Config.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
+                val videoList = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_LIST_PART)
+                videoList.key = SearchConfig.YOUTUBE_API
+                videoList.fields = SearchConfig.YOUTUBE_VIDEO_LIST_FIELDS
+                videoList.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
 
                 val searchResp = searchList.execute()
                 val searchResults = searchResp.items

@@ -1,4 +1,4 @@
-package com.tails.data.remote.youtube
+package com.tails.domain.entities
 
 data class VideoMeta(
     val videoId: String?,
@@ -8,35 +8,26 @@ data class VideoMeta(
     val videoLength: Long,
     val viewCount: Long,
     val isLiveStream: Boolean
-){
+) {
     companion object {
         private const val IMAGE_BASE_URL = "http://i.ytimg.com/vi/"
     }
 
     // 120 x 90
-    fun getThumbUrl(): String {
-        return "$IMAGE_BASE_URL$videoId/default.jpg"
-    }
+    fun getThumbUrl(): String = "$IMAGE_BASE_URL$videoId/default.jpg"
+
 
     // 320 x 180
-    fun getMqImageUrl(): String {
-        return "$IMAGE_BASE_URL$videoId/mqdefault.jpg"
-    }
+    fun getMqImageUrl(): String = "$IMAGE_BASE_URL$videoId/mqdefault.jpg"
 
     // 480 x 360
-    fun getHqImageUrl(): String {
-        return "$IMAGE_BASE_URL$videoId/hqdefault.jpg"
-    }
+    fun getHqImageUrl(): String = "$IMAGE_BASE_URL$videoId/hqdefault.jpg"
 
     // 640 x 480
-    fun getSdImageUrl(): String {
-        return "$IMAGE_BASE_URL$videoId/sddefault.jpg"
-    }
+    fun getSdImageUrl(): String = "$IMAGE_BASE_URL$videoId/sddefault.jpg"
 
     // Max Res
-    fun getMaxResImageUrl(): String {
-        return "$IMAGE_BASE_URL$videoId/maxresdefault.jpg"
-    }
+    fun getMaxResImageUrl(): String = "$IMAGE_BASE_URL$videoId/maxresdefault.jpg"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -53,7 +44,6 @@ data class VideoMeta(
         if (if (author != null) author != videoMeta.author else videoMeta.author != null)
             return false
         return if (channelId != null) channelId == videoMeta.channelId else videoMeta.channelId == null
-
     }
 
     override fun hashCode(): Int {
@@ -67,14 +57,13 @@ data class VideoMeta(
         return result
     }
 
-    override fun toString(): String
-        = "VideoMeta{" +
-                "videoId='" + videoId + '\''.toString() +
-                ", title='" + title + '\''.toString() +
-                ", author='" + author + '\''.toString() +
-                ", channelId='" + channelId + '\''.toString() +
-                ", videoLength=" + videoLength +
-                ", viewCount=" + viewCount +
-                ", isLiveStream=" + isLiveStream +
-                '}'.toString()
+    override fun toString(): String = "VideoMeta{" +
+            "videoId='" + videoId + '\''.toString() +
+            ", title='" + title + '\''.toString() +
+            ", author='" + author + '\''.toString() +
+            ", channelId='" + channelId + '\''.toString() +
+            ", videoLength=" + videoLength +
+            ", viewCount=" + viewCount +
+            ", isLiveStream=" + isLiveStream +
+            '}'.toString()
 }

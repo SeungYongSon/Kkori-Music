@@ -1,4 +1,4 @@
-package com.tails.data.remote.youtube
+package com.tails.domain.entities
 
 data class YtFile(
     var format : Format?,

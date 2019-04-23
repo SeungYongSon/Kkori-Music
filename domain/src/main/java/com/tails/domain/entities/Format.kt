@@ -1,4 +1,4 @@
-package com.tails.data.remote.youtube
+package com.tails.domain.entities
 
 class Format{
     enum class VCodec {
