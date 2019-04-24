@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, SparseArray<YtFile>>() {
+abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFile>() {
 
     companion object {
         private const val LOG_TAG = "YouTubeExtractor"
@@ -191,18 +191,24 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, Spar
         this.execute(videoID)
     }
 
-    override fun onPostExecute(ytFiles: SparseArray<YtFile>?) {
-        onExtractionComplete(getBestStream(ytFiles), videoMeta)
+    override fun onPostExecute(result: YtFile) {
+        onExtractionComplete(result, videoMeta)
     }
 
     protected abstract fun onExtractionComplete(ytFile: YtFile?, videoMeta: VideoMeta?)
 
-    override fun doInBackground(vararg params: String): SparseArray<YtFile>? {
+    override fun doInBackground(vararg params: String): YtFile? {
         videoID = params[0]
 
         if (videoID.isNotEmpty()) {
             try {
-                return getStreamUrls()
+                while(true) {
+                    val ytFiles = getStreamUrls()
+                    val result = getBestStream(ytFiles)
+                    if (result != null && result.url!!.contains("&signature=")) {
+                        return result
+                    }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
