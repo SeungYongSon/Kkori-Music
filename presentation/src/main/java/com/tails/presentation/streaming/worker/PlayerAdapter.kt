@@ -1,8 +1,8 @@
-package com.tails.presentation.streaming
+package com.tails.presentation.streaming.worker
 
 interface PlayerAdapter {
 
-    val isPlaying: Boolean
+    //val isPlaying: Boolean
 
     fun loadMusic(streamUrl: String)
 

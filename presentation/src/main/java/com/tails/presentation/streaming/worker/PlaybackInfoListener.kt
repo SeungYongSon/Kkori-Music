@@ -1,10 +1,16 @@
-package com.tails.presentation.streaming
+package com.tails.presentation.streaming.worker
 
 import androidx.annotation.IntDef
 
 interface PlaybackInfoListener {
 
-    @IntDef(State.INVALID, State.PLAYING, State.PAUSED, State.RESET, State.COMPLETED)
+    @IntDef(
+        State.INVALID,
+        State.PLAYING,
+        State.PAUSED,
+        State.RESET,
+        State.COMPLETED
+    )
     @Retention(AnnotationRetention.SOURCE)
     annotation class State {
         companion object {

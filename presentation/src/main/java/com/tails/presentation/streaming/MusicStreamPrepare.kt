@@ -6,22 +6,21 @@ import androidx.work.*
 import com.tails.data.remote.extract.YouTubeExtractor
 import com.tails.domain.entities.VideoMeta
 import com.tails.domain.entities.YtFile
+import com.tails.presentation.streaming.worker.MusicStreamingController
+import com.tails.presentation.streaming.worker.PlaybackInfoListener
 
-class YouTubeMusicStream(playbackInfoListener: PlaybackInfoListener, context: Context) : YouTubeExtractor(context) {
-
-    companion object {
-        lateinit var playerAdapter: PlayerAdapter
-    }
+class MusicStreamPrepare(playbackInfoListener: PlaybackInfoListener, context: Context) : YouTubeExtractor(context) {
 
     init {
-        playerAdapter = MusicPlayerHolder(playbackInfoListener)
+        MusicStreamingController.playbackInfoListener = playbackInfoListener
     }
 
     override fun onExtractionComplete(ytFile: YtFile?, videoMeta: VideoMeta?) {
-        if(ytFile != null && videoMeta != null) {
+        if (ytFile != null && videoMeta != null) {
             Log.e("result url", ytFile.url)
 
             val data = Data.Builder()
+                .putString("control", "load")
                 .putString("streamUrl", ytFile.url)
                 .build()
 
@@ -29,12 +28,12 @@ class YouTubeMusicStream(playbackInfoListener: PlaybackInfoListener, context: Co
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
-            val workRequest = OneTimeWorkRequestBuilder<PlayMusicWorker>()
+            val streamMusic = OneTimeWorkRequestBuilder<MusicStreamingController>()
                 .setConstraints(constraints)
                 .setInputData(data)
                 .build()
 
-            WorkManager.getInstance().enqueue(workRequest)
+            WorkManager.getInstance().enqueue(streamMusic)
         }
     }
 }

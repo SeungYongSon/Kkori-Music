@@ -19,6 +19,7 @@ buildscript {
         roomVersion = '2.1.0-alpha04'
         workVersion = '2.0.0-rc01'
         supportLibraryVersion = '1.1.0-alpha02'
+        mediaVersion = '1.0.0'
 
         glideVersion = '4.8.0'
 

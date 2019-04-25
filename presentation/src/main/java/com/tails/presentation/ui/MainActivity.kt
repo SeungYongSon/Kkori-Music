@@ -1,15 +1,28 @@
 package com.tails.presentation.ui
 
 import android.os.Bundle
+import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import com.tails.presentation.streaming.PlaybackInfoListener
-import com.tails.presentation.streaming.YouTubeMusicStream
+import androidx.work.*
+import com.tails.presentation.R
+import com.tails.presentation.streaming.worker.PlaybackInfoListener
+import com.tails.presentation.streaming.MusicStreamPrepare
+import com.tails.presentation.streaming.worker.MusicStreamingController
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), PlaybackInfoListener {
+class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickListener {
 
-    var userIsSeeking = false
+    private val workManager = WorkManager.getInstance()
+    private val musicControlBuilder =
+        OneTimeWorkRequestBuilder<MusicStreamingController>().apply {
+            setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+        }
+    private var userIsSeeking = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,20 +35,14 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener {
 //        }
         initializeUI()
 
-        val musicStream = YouTubeMusicStream(this, applicationContext)
-        musicStream.extract("RRKJiM9Njr8", parseDashManifest = true, includeWebM = true)
+        val musicStreamPrepare = MusicStreamPrepare(this, applicationContext)
+        musicStreamPrepare.extract("CP3R8rpbBgQ", parseDashManifest = true, includeWebM = true)
     }
 
     private fun initializeUI() {
-        button_play.setOnClickListener {
-            YouTubeMusicStream.playerAdapter.play()
-        }
-        button_pause.setOnClickListener {
-            YouTubeMusicStream.playerAdapter.pause()
-        }
-        button_reset.setOnClickListener {
-            YouTubeMusicStream.playerAdapter.reset()
-        }
+        button_play.setOnClickListener(this)
+        button_pause.setOnClickListener(this)
+        button_reset.setOnClickListener(this)
 
         seekbar_audio.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
@@ -53,9 +60,42 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener {
 
                 override fun onStopTrackingTouch(seekBar: SeekBar) {
                     userIsSeeking = false
-                    YouTubeMusicStream.playerAdapter.seekTo(userSelectedPosition)
+                    workManager.enqueue(
+                        musicControlBuilder.setInputData(
+                            Data.Builder()
+                                .putString("control", "seek")
+                                .putInt("seekPosition", userSelectedPosition)
+                                .build()
+                        ).build()
+                    )
                 }
             })
+    }
+
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.button_play -> {
+                workManager.enqueue(
+                    musicControlBuilder.setInputData(
+                        Data.Builder().putString("control", "play").build()
+                    ).build()
+                )
+            }
+            R.id.button_pause -> {
+                workManager.enqueue(
+                    musicControlBuilder.setInputData(
+                        Data.Builder().putString("control", "pause").build()
+                    ).build()
+                )
+            }
+            R.id.button_reset -> {
+                workManager.enqueue(
+                    musicControlBuilder.setInputData(
+                        Data.Builder().putString("control", "reset").build()
+                    ).build()
+                )
+            }
+        }
     }
 
     override fun onDurationChanged(duration: Int) {
@@ -68,11 +108,7 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener {
         }
     }
 
-    override fun onStateChanged(state: Int) {
+    override fun onStateChanged(state: Int) {}
 
-    }
-
-    override fun onPlaybackCompleted() {
-
-    }
+    override fun onPlaybackCompleted() {}
 }

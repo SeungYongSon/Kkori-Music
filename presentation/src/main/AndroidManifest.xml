@@ -21,6 +21,13 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <receiver android:name=".streaming.receiver.MusicControlReceiver">
+            <intent-filter>
+                <action android:name="kkori.pause"></action>
+                <action android:name="kkori.previous"></action>
+                <action android:name="kkori.next"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
