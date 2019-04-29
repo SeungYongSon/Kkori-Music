@@ -10,7 +10,7 @@ data class VideoMeta(
     val isLiveStream: Boolean
 ) {
     companion object {
-        private const val IMAGE_BASE_URL = "http://i.ytimg.com/vi/"
+        private const val IMAGE_BASE_URL = "https://i.ytimg.com/vi/"
     }
 
     // 120 x 90

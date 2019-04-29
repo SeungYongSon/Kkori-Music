@@ -4,24 +4,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.*
 import com.tails.presentation.R
-import com.tails.presentation.streaming.worker.PlaybackInfoListener
-import com.tails.presentation.streaming.MusicStreamPrepare
-import com.tails.presentation.streaming.worker.MusicStreamingController
+import com.tails.presentation.streaming.controller.MusicStreamingController
+import com.tails.presentation.streaming.controller.PlaybackInfoListener
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickListener {
 
-    private val workManager = WorkManager.getInstance()
-    private val musicControlBuilder =
-        OneTimeWorkRequestBuilder<MusicStreamingController>().apply {
-            setConstraints(
-                Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-            )
-        }
     private var userIsSeeking = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,10 +22,18 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
 //            test_text.text = toString()
 //            YouTubeSearcher.cancel(false)
 //        }
+
         initializeUI()
 
-        val musicStreamPrepare = MusicStreamPrepare(this, applicationContext)
-        musicStreamPrepare.extract("CP3R8rpbBgQ", parseDashManifest = true, includeWebM = true)
+        MusicStreamingController.prepare(this, applicationContext, "VYOjWnS4cMY")
+    }
+
+    override fun onBackPressed() {
+        if (MusicStreamingController.isPlaying) moveTaskToBack(true)
+        else {
+            MusicStreamingController.controlRequest("release")
+            super.onBackPressed()
+        }
     }
 
     private fun initializeUI() {
@@ -60,14 +57,7 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
 
                 override fun onStopTrackingTouch(seekBar: SeekBar) {
                     userIsSeeking = false
-                    workManager.enqueue(
-                        musicControlBuilder.setInputData(
-                            Data.Builder()
-                                .putString("control", "seek")
-                                .putInt("seekPosition", userSelectedPosition)
-                                .build()
-                        ).build()
-                    )
+                    MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
                 }
             })
     }
@@ -75,25 +65,13 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
     override fun onClick(v: View) {
         when (v.id) {
             R.id.button_play -> {
-                workManager.enqueue(
-                    musicControlBuilder.setInputData(
-                        Data.Builder().putString("control", "play").build()
-                    ).build()
-                )
+                MusicStreamingController.controlRequest("play")
             }
             R.id.button_pause -> {
-                workManager.enqueue(
-                    musicControlBuilder.setInputData(
-                        Data.Builder().putString("control", "pause").build()
-                    ).build()
-                )
+                MusicStreamingController.controlRequest("pause")
             }
             R.id.button_reset -> {
-                workManager.enqueue(
-                    musicControlBuilder.setInputData(
-                        Data.Builder().putString("control", "reset").build()
-                    ).build()
-                )
+                MusicStreamingController.controlRequest("reset")
             }
         }
     }

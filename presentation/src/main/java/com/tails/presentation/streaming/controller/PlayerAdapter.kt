@@ -1,4 +1,4 @@
-package com.tails.presentation.streaming.worker
+package com.tails.presentation.streaming.controller
 
 interface PlayerAdapter {
 

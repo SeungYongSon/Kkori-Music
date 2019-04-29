@@ -1,10 +1,12 @@
-package com.tails.presentation.streaming.worker
+package com.tails.presentation.streaming.controller
 
 import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import androidx.work.Worker
-import androidx.work.WorkerParameters
+import androidx.work.*
+import com.tails.presentation.streaming.extractor.MusicExtractor
+import com.tails.presentation.streaming.notification.MusicControlNotification
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -22,8 +24,63 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
 
         private lateinit var url: String
 
+        private val workManager = WorkManager.getInstance()
+        private val musicControlBuilder =
+            OneTimeWorkRequestBuilder<MusicStreamingController>().apply {
+                setConstraints(
+                    Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build()
+                )
+            }
+
+        private lateinit var musicExtractor: MusicExtractor
+
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
+
+        fun prepare(videoId: String) {
+            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+        }
+
+        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
+            context.startService(Intent(context, AppTurnOffCheckService::class.java))
+            musicExtractor = MusicExtractor(context)
+            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+            this.playbackInfoListener = playbackInfoListener
+        }
+
+        fun controlRequest(action: String) {
+            workManager.enqueue(
+                musicControlBuilder.setInputData(
+                    Data.Builder().putString(
+                        "control", action
+                    ).build()
+                ).build()
+            )
+        }
+
+        fun controlRequest(action: String, key: String, value: String) {
+            workManager.enqueue(
+                musicControlBuilder.setInputData(
+                    Data.Builder()
+                        .putString("control", action)
+                        .putString(key, value)
+                        .build()
+                ).build()
+            )
+        }
+
+        fun controlRequest(action: String, key: String, value: Int) {
+            workManager.enqueue(
+                musicControlBuilder.setInputData(
+                    Data.Builder()
+                        .putString("control", action)
+                        .putInt(key, value)
+                        .build()
+                ).build()
+            )
+        }
     }
 
     override fun doWork(): Result = try {
@@ -59,6 +116,11 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         Result.failure()
     }
 
+    override fun onPrepared(mp: MediaPlayer?) {
+        initializeProgressCallback()
+        play()
+    }
+
     override fun loadMusic(streamUrl: String) {
         initializeMediaPlayer()
         if (mediaPlayer != null) {
@@ -69,22 +131,12 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         }
     }
 
-    override fun onPrepared(mp: MediaPlayer?) {
-        initializeProgressCallback()
-        play()
-    }
-
-    override fun release() {
-        if (mediaPlayer != null) {
-            mediaPlayer!!.release()
-        }
-    }
-
     override fun play() {
         if (mediaPlayer != null) {
             mediaPlayer!!.start()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING)
             startUpdatingCallbackWithPosition()
+            MusicControlNotification.showNotification(applicationContext, musicExtractor.videoMeta)
         }
     }
 
@@ -98,6 +150,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         if (mediaPlayer != null && mediaPlayer!!.isPlaying) {
             mediaPlayer!!.pause()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PAUSED)
+            MusicControlNotification.showNotification(applicationContext, musicExtractor.videoMeta)
         }
     }
 
@@ -105,8 +158,18 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         if (mediaPlayer != null) {
             mediaPlayer!!.reset()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.RESET)
+            MusicControlNotification.removeNotification(applicationContext)
             loadMusic(url)
             stopUpdatingCallbackWithPosition(true)
+        }
+    }
+
+    override fun release() {
+        if (mediaPlayer != null) {
+            mediaPlayer!!.stop()
+            mediaPlayer!!.release()
+            mediaPlayer = null
+            applicationContext.stopService(Intent(applicationContext, AppTurnOffCheckService::class.java))
         }
     }
 

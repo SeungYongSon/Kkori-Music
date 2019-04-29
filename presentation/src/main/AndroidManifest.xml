@@ -9,25 +9,21 @@
 
     <application
             android:allowBackup="true"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@drawable/ic_tail"
             android:label="@string/app_name"
-            android:roundIcon="@mipmap/ic_launcher_round"
+            android:roundIcon="@drawable/ic_tail"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name="com.tails.presentation.ui.MainActivity">
+        <activity android:name="com.tails.presentation.ui.MainActivity"
+                  android:alwaysRetainTaskState="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <receiver android:name=".streaming.receiver.MusicControlReceiver">
-            <intent-filter>
-                <action android:name="kkori.pause"></action>
-                <action android:name="kkori.previous"></action>
-                <action android:name="kkori.next"></action>
-            </intent-filter>
-        </receiver>
+        <service android:name=".streaming.controller.AppTurnOffCheckService"
+                 android:stopWithTask="false"/>
     </application>
 
 </manifest>
