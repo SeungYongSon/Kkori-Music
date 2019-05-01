@@ -1,7 +1,6 @@
 package com.tails.presentation.streaming.controller
 
 import android.content.Context
-import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.work.*
@@ -15,6 +14,11 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
     Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener {
 
     companion object {
+
+        var isPreparing: Boolean = false
+        val isPlaying: Boolean
+            get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
+
         lateinit var playbackInfoListener: PlaybackInfoListener
 
         private const val PLAYBACK_POSITION_REFRESH_INTERVAL_MS = 1000
@@ -36,18 +40,15 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
 
         private lateinit var musicExtractor: MusicExtractor
 
-        val isPlaying: Boolean
-            get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
-
         fun prepare(videoId: String) {
             musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
         }
 
         fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
-            context.startService(Intent(context, AppTurnOffCheckService::class.java))
             musicExtractor = MusicExtractor(context)
             musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
             this.playbackInfoListener = playbackInfoListener
+            isPreparing = true
         }
 
         fun controlRequest(action: String) {
@@ -117,6 +118,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
+        isPreparing = false
         initializeProgressCallback()
         play()
     }
@@ -169,7 +171,6 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             mediaPlayer!!.stop()
             mediaPlayer!!.release()
             mediaPlayer = null
-            applicationContext.stopService(Intent(applicationContext, AppTurnOffCheckService::class.java))
         }
     }
 

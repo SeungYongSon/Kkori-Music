@@ -1,17 +1,21 @@
 package com.tails.presentation.ui
 
+import android.content.IntentFilter
 import android.os.Bundle
+import android.os.Process
 import android.view.View
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.streaming.controller.PlaybackInfoListener
+import com.tails.presentation.streaming.receiver.MusicControlReceiver
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickListener {
 
     private var userIsSeeking = false
+    private val broadcastReceiver = MusicControlReceiver()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,16 +28,21 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
 //        }
 
         initializeUI()
+        initNotificationActionBroadcastReceiver()
 
-        MusicStreamingController.prepare(this, applicationContext, "VYOjWnS4cMY")
+        MusicStreamingController.prepare(this, applicationContext, "FOabQZHT4qY")
     }
 
     override fun onBackPressed() {
-        if (MusicStreamingController.isPlaying) moveTaskToBack(true)
-        else {
-            MusicStreamingController.controlRequest("release")
-            super.onBackPressed()
-        }
+        if (MusicStreamingController.isPlaying ||
+            MusicStreamingController.isPreparing) moveTaskToBack(true)
+        else finishAndRemoveTask()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        this.unregisterReceiver(broadcastReceiver)
+        Process.killProcess(Process.myPid())
     }
 
     private fun initializeUI() {
@@ -60,6 +69,16 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
                     MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
                 }
             })
+    }
+
+    private fun initNotificationActionBroadcastReceiver() {
+        val pauseIntentFilter = IntentFilter("kkori.pause")
+        val previousIntentFilter = IntentFilter("kkori.previous")
+        val nextIntentFilter = IntentFilter("kkori.next")
+
+        this.registerReceiver(broadcastReceiver, previousIntentFilter)
+        this.registerReceiver(broadcastReceiver, pauseIntentFilter)
+        this.registerReceiver(broadcastReceiver, nextIntentFilter)
     }
 
     override fun onClick(v: View) {

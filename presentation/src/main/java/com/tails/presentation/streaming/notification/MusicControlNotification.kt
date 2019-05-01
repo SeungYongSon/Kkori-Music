@@ -1,5 +1,6 @@
 package com.tails.presentation.streaming.notification
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -10,9 +11,12 @@ import android.os.Build
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.tails.domain.entities.VideoMeta
 import com.tails.presentation.R
+import com.tails.presentation.streaming.service.ChooseServiceType
 import androidx.media.app.NotificationCompat as MediaNotificationCompat
 
 object MusicControlNotification {
@@ -21,6 +25,7 @@ object MusicControlNotification {
     private const val name = "Kkori Music"
     private const val description = "Music Control"
 
+    private var mediaSessionCompat: MediaSessionCompat? = null
     private var notificationManager: NotificationManager? = null
 
     private val prevIntent = Intent("kkori.previous")
@@ -33,7 +38,49 @@ object MusicControlNotification {
     private var nextPendingIntent: PendingIntent? = null
     private var cancelPendingIntent: PendingIntent? = null
 
+    var notification: Notification? = null
+
     fun showNotification(context: Context, videoMeta: VideoMeta) {
+        init(context)
+
+        AsyncTask.execute {
+            notification = NotificationCompat.Builder(context, CHANNEL_ID).apply {
+                setSmallIcon(R.drawable.ic_tail)
+                setLargeIcon(Glide.with(context).asBitmap().load(videoMeta.getMqImageUrl()).submit().get())
+
+                setContentTitle(videoMeta.title)
+                setContentText(videoMeta.author)
+
+                setStyle(
+                    MediaNotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSessionCompat!!.sessionToken)
+                        .setShowActionsInCompactView(0, 1, 2))
+
+                addAction(R.drawable.ic_previous_12dp, "Previous", prevPendingIntent)
+                addAction(R.drawable.ic_play_pause_12dp, "Pause", pausePendingIntent)
+                addAction(R.drawable.ic_next_12dp, "Next", nextPendingIntent)
+
+                setOngoing(true)
+                setCategory(NotificationCompat.CATEGORY_TRANSPORT)
+                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            }.build()
+
+            WorkManager.getInstance().enqueue(OneTimeWorkRequestBuilder<ChooseServiceType>().build())
+        }
+    }
+
+    fun removeNotification(context: Context) {
+        with(NotificationManagerCompat.from(context)) { cancel(20011203) }
+        if (notificationManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                notificationManager!!.deleteNotificationChannel(CHANNEL_ID)
+                notificationManager!!.cancelAll()
+                notificationManager = null
+            }
+        }
+    }
+
+    private fun init(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (notificationManager == null) {
                 val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW)
@@ -47,72 +94,13 @@ object MusicControlNotification {
         }
 
         if (prevPendingIntent == null || pausePendingIntent == null || nextPendingIntent == null) {
-            prevPendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                prevIntent,
-                0
-            )
-
-            pausePendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                pauseIntent,
-                0
-            )
-
-            nextPendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                nextIntent,
-                0
-            )
-
-            cancelPendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                cancelIntent,
-                0
-            )
+            prevPendingIntent = PendingIntent.getBroadcast(context, 0, prevIntent, 0)
+            pausePendingIntent = PendingIntent.getBroadcast(context, 0, pauseIntent, 0)
+            nextPendingIntent = PendingIntent.getBroadcast(context, 0, nextIntent, 0)
+            cancelPendingIntent = PendingIntent.getBroadcast(context, 0, cancelIntent, 0)
         }
 
-        val mediaSessionCompat = MediaSessionCompat(context, "Kkori Music")
-        AsyncTask.execute {
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID).apply {
-                setSmallIcon(R.drawable.ic_tail)
-                setLargeIcon(Glide.with(context).asBitmap().load(videoMeta.getMqImageUrl()).submit().get())
-
-                setContentTitle(videoMeta.title)
-                setContentText(videoMeta.author)
-
-                setStyle(
-                    MediaNotificationCompat.MediaStyle()
-                        .setMediaSession(mediaSessionCompat.sessionToken)
-                        .setShowActionsInCompactView(0, 1, 2)
-                )
-
-                addAction(R.drawable.ic_previous_12dp, "Previous", prevPendingIntent)
-                addAction(R.drawable.ic_play_pause_12dp, "Pause", pausePendingIntent)
-                addAction(R.drawable.ic_next_12dp, "Next", nextPendingIntent)
-
-                setOngoing(true)
-                setCategory(NotificationCompat.CATEGORY_TRANSPORT)
-                setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            }.build()
-            with(NotificationManagerCompat.from(context)) {
-                notify(20011203, notification)
-            }
-        }
-    }
-
-    fun removeNotification(context: Context) {
-        with(NotificationManagerCompat.from(context)) { cancelAll() }
-        if (notificationManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                notificationManager!!.deleteNotificationChannel(CHANNEL_ID)
-                notificationManager!!.cancelAll()
-                notificationManager = null
-            }
-        }
+        if (mediaSessionCompat == null)
+            mediaSessionCompat = MediaSessionCompat(context, "Kkori Music")
     }
 }
