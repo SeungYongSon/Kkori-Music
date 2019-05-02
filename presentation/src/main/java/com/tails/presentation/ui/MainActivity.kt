@@ -1,74 +1,119 @@
 package com.tails.presentation.ui
 
 import android.content.IntentFilter
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Process
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
-import android.widget.SeekBar
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
-import com.tails.presentation.streaming.controller.PlaybackInfoListener
 import com.tails.presentation.streaming.receiver.MusicControlReceiver
+import com.tails.presentation.ui.player.PlayerFragment
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickListener {
+class MainActivity : AppCompatActivity() {
 
-    private var userIsSeeking = false
     private val broadcastReceiver = MusicControlReceiver()
+
+    private lateinit var navController: NavController
+    private var isSearchBack = false
+    lateinit var playerBehavior: BottomSheetBehavior<View?>
+
+    private val bottomNavigationViewBehavior: BottomSheetBehavior<BottomNavigationView> by lazy {
+        BottomSheetBehavior.from(bottomNavigationView)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(com.tails.presentation.R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
-//        YouTubeSearcher.search("넘쳐흘러")
-//        YouTubeSearcher.get().apply {
-//            test_text.text = toString()
-//            YouTubeSearcher.cancel(false)
-//        }
-
-        initializeUI()
         initNotificationActionBroadcastReceiver()
 
-        MusicStreamingController.prepare(this, applicationContext, "FOabQZHT4qY")
+        setSupportActionBar(toolbar)
+
+        playerBehavior = BottomSheetBehavior.from(player_fragment.view)
+
+        supportActionBar!!.setLogo(R.drawable.ic_tail)
+        supportActionBar!!.title = "Music"
+
+        navController = findNavController(R.id.page_fragment)
+        bottomNavigationView.setupWithNavController(navController)
+
+        supportFragmentManager.beginTransaction().apply {
+            add(R.id.player_fragment, PlayerFragment())
+            commit()
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.search, menu)
+
+        val searchItem = menu.findItem(R.id.searchFragment)
+        val searchView = searchItem.actionView as SearchView
+        val v = searchView.findViewById(androidx.appcompat.R.id.search_plate) as View
+        val txtSearch = searchView.findViewById(androidx.appcompat.R.id.search_src_text) as EditText
+
+        searchView.queryHint = "검색"
+        searchView.maxWidth = Integer.MAX_VALUE
+        v.setBackgroundColor(Color.TRANSPARENT)
+        txtSearch.setTextColor(Color.argb(255, 255, 87, 34))
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                navController.navigate(R.id.searchFragment)
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                isSearchBack = true
+                onBackPressed()
+                return true
+            }
+        })
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(s: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(s: String): Boolean {
+                return false
+            }
+        })
+
+        return true
     }
 
     override fun onBackPressed() {
-        if (MusicStreamingController.isPlaying ||
-            MusicStreamingController.isPreparing) moveTaskToBack(true)
-        else finishAndRemoveTask()
+        if(playerBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+            playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        else {
+            if(!isSearchBack) {
+                if (MusicStreamingController.isPlaying ||
+                    MusicStreamingController.isPreparing
+                ) moveTaskToBack(true)
+                else finishAndRemoveTask()
+            } else{
+                isSearchBack = false
+                super.onBackPressed()
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         this.unregisterReceiver(broadcastReceiver)
         Process.killProcess(Process.myPid())
-    }
-
-    private fun initializeUI() {
-        button_play.setOnClickListener(this)
-        button_pause.setOnClickListener(this)
-        button_reset.setOnClickListener(this)
-
-        seekbar_audio.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                var userSelectedPosition = 0
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {
-                    userIsSeeking = true
-                }
-
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                    if (fromUser) {
-                        userSelectedPosition = progress
-                    }
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar) {
-                    userIsSeeking = false
-                    MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
-                }
-            })
     }
 
     private fun initNotificationActionBroadcastReceiver() {
@@ -81,31 +126,15 @@ class MainActivity : AppCompatActivity(), PlaybackInfoListener, View.OnClickList
         this.registerReceiver(broadcastReceiver, nextIntentFilter)
     }
 
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.button_play -> {
-                MusicStreamingController.controlRequest("play")
-            }
-            R.id.button_pause -> {
-                MusicStreamingController.controlRequest("pause")
-            }
-            R.id.button_reset -> {
-                MusicStreamingController.controlRequest("reset")
-            }
-        }
+    fun collapsePlayer() {
+        bottomNavigationViewBehavior.isHideable = false
+        bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        appBarLayout.setExpanded(true, true)
     }
 
-    override fun onDurationChanged(duration: Int) {
-        seekbar_audio.max = duration
+    fun expandPlayer() {
+        bottomNavigationViewBehavior.isHideable = true
+        bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        appBarLayout.setExpanded(false, true)
     }
-
-    override fun onPositionChanged(position: Int) {
-        if (!userIsSeeking) {
-            seekbar_audio.progress = position
-        }
-    }
-
-    override fun onStateChanged(state: Int) {}
-
-    override fun onPlaybackCompleted() {}
 }

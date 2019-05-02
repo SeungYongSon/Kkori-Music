@@ -2,23 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-            android:id="@+id/navigation_food"
-            android:icon="@drawable/ic_food_navigation"
-            android:title="@string/navigation_food"/>
+            android:id="@+id/homeFragment"
+            android:icon="@drawable/ic_home"
+            android:title="@string/home"/>
 
     <item
-            android:id="@+id/navigation_submit"
-            android:icon="@drawable/ic_submit_navigation"
-            android:title="@string/navigation_submit"/>
+            android:id="@+id/hotFragment"
+            android:icon="@drawable/ic_hot"
+            android:title="@string/hot"/>
 
     <item
-            android:id="@+id/navigation_notice"
-            android:icon="@drawable/ic_notice_navigation"
-            android:title="@string/navigation_notice"/>
-
-    <item
-            android:id="@+id/navigation_myPage"
-            android:icon="@drawable/ic_my_page_navigation"
-            android:title="@string/navigation_mypage"/>
-
+            android:id="@+id/libraryFragment"
+            android:icon="@drawable/ic_library"
+            android:title="@string/library"/>
 </menu>

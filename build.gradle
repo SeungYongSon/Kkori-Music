@@ -18,9 +18,10 @@ buildscript {
         recyclerViewVersion = '1.1.0-alpha02'
         roomVersion = '2.1.0-alpha04'
         workVersion = '2.0.0-rc01'
-        supportLibraryVersion = '1.1.0-alpha02'
+        supportLibraryVersion = '1.0.2'
         mediaVersion = '1.0.0'
         mediaStylePaletteVersion = '1.3'
+        slidingUpPanelVersion = '3.4.0'
 
         glideVersion = '4.8.0'
 
@@ -40,6 +41,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0"
     }
 }
 

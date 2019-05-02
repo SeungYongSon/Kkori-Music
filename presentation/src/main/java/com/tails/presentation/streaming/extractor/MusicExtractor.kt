@@ -10,7 +10,7 @@ import com.tails.presentation.streaming.controller.MusicStreamingController
 class MusicExtractor(context: Context) : YouTubeExtractor(context) {
 
     lateinit var videoMeta: VideoMeta
-    lateinit var ytFile: YtFile
+    private lateinit var ytFile: YtFile
 
     override fun onExtractionComplete(ytFile: YtFile?, videoMeta: VideoMeta?) {
         if (ytFile != null && videoMeta != null) {

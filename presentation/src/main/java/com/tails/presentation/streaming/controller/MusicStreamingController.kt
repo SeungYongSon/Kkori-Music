@@ -119,6 +119,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
 
     override fun onPrepared(mp: MediaPlayer?) {
         isPreparing = false
+        playbackInfoListener.onPrepareCompleted(musicExtractor.videoMeta)
         initializeProgressCallback()
         play()
     }
@@ -171,6 +172,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             mediaPlayer!!.stop()
             mediaPlayer!!.release()
             mediaPlayer = null
+            MusicControlNotification.removeNotification(applicationContext)
         }
     }
 

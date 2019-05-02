@@ -1,6 +1,7 @@
 package com.tails.presentation.streaming.controller
 
 import androidx.annotation.IntDef
+import com.tails.domain.entities.VideoMeta
 
 interface PlaybackInfoListener {
 
@@ -29,4 +30,6 @@ interface PlaybackInfoListener {
     fun onStateChanged(@State state: Int)
 
     fun onPlaybackCompleted()
+
+    fun onPrepareCompleted(videoMeta: VideoMeta)
 }

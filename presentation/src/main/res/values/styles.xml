@@ -2,6 +2,8 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowActionBarOverlay">true</item>
+
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -9,6 +11,14 @@
         <!-- Customize your theme here. -->
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:windowLightStatusBar">true</item>
+
+        <item name="android:textColorHint">#80FF5722</item>
+        <!-- TextInputLayout text color-->
+        <item name="colorControlActivated">@color/colorAccent</item>
+        <!-- EditText line color when EditText on-focus-->
+        <item name="colorControlHighlight">#E15722</item>
+        <!-- EditText line color when EditText  in un-focus-->
+        <item name="colorControlNormal">@color/colorAccent</item>
     </style>
 
 </resources>
