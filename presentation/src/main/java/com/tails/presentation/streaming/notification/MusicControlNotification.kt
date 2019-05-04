@@ -11,12 +11,10 @@ import android.os.Build
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.tails.domain.entities.VideoMeta
 import com.tails.presentation.R
-import com.tails.presentation.streaming.service.ChooseServiceType
+import com.tails.presentation.streaming.service.RealTimeOperationService
 import androidx.media.app.NotificationCompat as MediaNotificationCompat
 
 object MusicControlNotification {
@@ -54,7 +52,8 @@ object MusicControlNotification {
                 setStyle(
                     MediaNotificationCompat.MediaStyle()
                         .setMediaSession(mediaSessionCompat!!.sessionToken)
-                        .setShowActionsInCompactView(0, 1, 2))
+                        .setShowActionsInCompactView(0, 1, 2)
+                )
 
                 addAction(R.drawable.ic_previous_12dp, "Previous", prevPendingIntent)
                 addAction(R.drawable.ic_play_pause_12dp, "Pause", pausePendingIntent)
@@ -65,7 +64,12 @@ object MusicControlNotification {
                 setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             }.build()
 
-            WorkManager.getInstance().enqueue(OneTimeWorkRequestBuilder<ChooseServiceType>().build())
+            Thread {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    context.startForegroundService(Intent(context, RealTimeOperationService::class.java))
+                else
+                    context.startService(Intent(context, RealTimeOperationService::class.java))
+            }.start()
         }
     }
 
@@ -78,6 +82,7 @@ object MusicControlNotification {
                 notificationManager = null
             }
         }
+        context.stopService(Intent(context, RealTimeOperationService::class.java))
     }
 
     private fun init(context: Context) {

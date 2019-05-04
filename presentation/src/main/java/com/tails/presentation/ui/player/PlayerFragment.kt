@@ -1,5 +1,6 @@
 package com.tails.presentation.ui.player
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.AsyncTask
@@ -21,57 +22,72 @@ import com.tails.presentation.ui.base.BaseFragment
 import kotlinx.android.synthetic.main.fragment_player.*
 import mkaflowski.mediastylepalette.MediaNotificationProcessor
 
-class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListener {
+class PlayerFragment : BaseFragment(),
+    View.OnClickListener, PlaybackInfoListener, SeekBar.OnSeekBarChangeListener {
 
     private var userIsSeeking = false
-    private var statusColor: Int = 0
+    private var isLight = false
+    private var statusColor = 0
+    private var userSelectedPosition = 0
 
     override val layoutId: Int
         get() = R.layout.fragment_player
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setPlayerBehavior()
+        MusicStreamingController.prepare(this, context!!, "iR1sAex__VA")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initializeUI()
+    }
+
+    private fun setPlayerBehavior() {
         (activity as MainActivity).apply {
             playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             playerBehavior.setBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                @SuppressLint("SwitchIntDef")
                 override fun onStateChanged(bottomSheet: View, state: Int) {
                     when (state) {
                         BottomSheetBehavior.STATE_EXPANDED -> {
                             expandPlayer()
+
                             if (toolbar_expand.visibility == View.GONE) expandToolbarToggle()
                             if (toolbar_collapse.visibility == View.VISIBLE) collapseToolbarToggle()
 
-                            window.apply {
+                            (activity as MainActivity).window.apply {
                                 statusBarColor = statusColor
-                                navigationBarColor = statusColor
+                                //navigationBarColor = statusColor
+                                if (isLight) setSystemBarTheme(decorView, false)
+                                else setSystemBarTheme(decorView, true)
                             }
                         }
                         BottomSheetBehavior.STATE_COLLAPSED -> {
                             collapsePlayer()
+
                             if (toolbar_expand.visibility == View.VISIBLE) expandToolbarToggle()
                             if (toolbar_collapse.visibility == View.GONE) collapseToolbarToggle()
 
-                            window.apply {
+                            (activity as MainActivity).window.apply {
                                 statusBarColor = Color.argb(255, 250, 250, 250)
-                                navigationBarColor = Color.argb(255, 250, 250, 250)
+                                //navigationBarColor = Color.argb(255, 250, 250, 250)
+                                setSystemBarTheme(decorView, false)
                             }
                         }
                         BottomSheetBehavior.STATE_HIDDEN -> {
                             collapsePlayer()
+
                             if (toolbar_expand.visibility == View.VISIBLE) expandToolbarToggle()
                             if (toolbar_collapse.visibility == View.GONE) collapseToolbarToggle()
 
-                            window.apply {
+                            (activity as MainActivity).window.apply {
                                 statusBarColor = Color.argb(255, 250, 250, 250)
-                                navigationBarColor = Color.argb(255, 250, 250, 250)
+                                //navigationBarColor = Color.argb(255, 250, 250, 250)
+                                setSystemBarTheme(decorView, false)
                             }
                             MusicStreamingController.controlRequest("release")
-                        }
-                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {
-                        }
-                        BottomSheetBehavior.STATE_DRAGGING -> {
-                        }
-                        BottomSheetBehavior.STATE_SETTLING -> {
                         }
                     }
                 }
@@ -79,10 +95,6 @@ class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListene
                 override fun onSlide(p0: View, p1: Float) {}
             })
         }
-
-        initializeUI()
-
-        MusicStreamingController.prepare(this, context!!, "O6tXw1BmJaM")
     }
 
     private fun initializeUI() {
@@ -98,51 +110,40 @@ class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListene
         music_down.setOnClickListener(this)
         toolbar_collapse.setOnClickListener(this)
 
-        music_seek.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                var userSelectedPosition = 0
-
-                override fun onStartTrackingTouch(seekBar: SeekBar) {
-                    userIsSeeking = true
-                }
-
-                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                    if (fromUser) {
-                        userSelectedPosition = progress
-                    }
-                }
-
-                override fun onStopTrackingTouch(seekBar: SeekBar) {
-                    userIsSeeking = false
-                    MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
-                }
-            })
+        music_seek.setOnSeekBarChangeListener(this)
     }
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.music_pause -> {
+            R.id.music_pause ->
                 if (MusicStreamingController.isPlaying)
                     MusicStreamingController.controlRequest("pause")
                 else
                     MusicStreamingController.controlRequest("play")
-            }
-            R.id.toolbar_pause -> {
+            R.id.toolbar_pause ->
                 if (MusicStreamingController.isPlaying)
                     MusicStreamingController.controlRequest("pause")
                 else
                     MusicStreamingController.controlRequest("play")
-            }
-            R.id.toolbar_cancel -> {
-                (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-            }
-            R.id.music_down -> {
-                (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            }
-            R.id.toolbar_collapse -> {
-                (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-            }
+            R.id.toolbar_cancel -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+            R.id.music_down -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            R.id.toolbar_collapse -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
+    }
+
+    override fun onStartTrackingTouch(seekBar: SeekBar) {
+        userIsSeeking = true
+    }
+
+    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+        if (fromUser) {
+            userSelectedPosition = progress
+        }
+    }
+
+    override fun onStopTrackingTouch(seekBar: SeekBar) {
+        userIsSeeking = false
+        MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
     }
 
     override fun onPrepareCompleted(videoMeta: VideoMeta) {
@@ -178,10 +179,6 @@ class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListene
 
                     music_pause.setColorFilter(foregroundColor)
 
-                    music_list.setBackgroundColor(it.secondaryTextColor)
-                    music_list_next_title_tag.setTextColor(it.backgroundColor)
-                    music_list_next_title.setTextColor(it.backgroundColor)
-
                     music_previous.setColorFilter(it.secondaryTextColor)
                     music_minus.setColorFilter(it.secondaryTextColor)
                     music_next.setColorFilter(it.secondaryTextColor)
@@ -192,70 +189,62 @@ class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListene
                     music_menu.setColorFilter(it.secondaryTextColor)
                     music_time.setTextColor(it.primaryTextColor)
                     music_time_total.setTextColor(it.primaryTextColor)
+
+/*                    music_list.setBackgroundColor(it.secondaryTextColor)
+                    music_list_next_title_tag.setTextColor(it.backgroundColor)
+                    music_list_next_title.setTextColor(it.backgroundColor)
                     music_list_up.setColorFilter(it.backgroundColor)
-                    music_list_menu.setColorFilter(it.backgroundColor)
+                    music_list_menu.setColorFilter(it.backgroundColor)*/
 
-                    activity?.window?.apply {
-                        statusBarColor = it.primaryTextColor
-                        navigationBarColor = it.primaryTextColor
-                    }
-                    this.statusColor = it.primaryTextColor
-
-/*                    if (processor.isLight) {
-                        music_previous.setColorFilter(Color.DKGRAY)
-                        music_minus.setColorFilter(Color.DKGRAY)
-                        music_next.setColorFilter(Color.DKGRAY)
-                        music_plus.setColorFilter(Color.DKGRAY)
-                        toolbar_pause.setColorFilter(Color.DKGRAY)
-                        toolbar_cancel.setColorFilter(Color.DKGRAY)
-                        music_down.setColorFilter(Color.DKGRAY)
-                        music_menu.setColorFilter(Color.DKGRAY)
-                        music_time.setTextColor(Color.DKGRAY)
-                        music_time_total.setTextColor(Color.DKGRAY)
+                    music_list.setBackgroundColor(it.secondaryTextColor)
+                    if (isLight) {
+                        music_list.setBackgroundColor(Color.DKGRAY)
+                        music_list_next_title_tag.setTextColor(Color.DKGRAY)
+                        music_list_next_title.setTextColor(Color.DKGRAY)
                         music_list_up.setColorFilter(Color.DKGRAY)
                         music_list_menu.setColorFilter(Color.DKGRAY)
                     } else {
-                        music_previous.setColorFilter(Color.WHITE)
-                        music_minus.setColorFilter(Color.WHITE)
-                        music_next.setColorFilter(Color.WHITE)
-                        music_plus.setColorFilter(Color.WHITE)
-                        toolbar_pause.setColorFilter(Color.WHITE)
-                        toolbar_cancel.setColorFilter(Color.WHITE)
-                        music_down.setColorFilter(Color.WHITE)
-                        music_menu.setColorFilter(Color.WHITE)
-                        music_time.setTextColor(Color.WHITE)
-                        music_time_total.setTextColor(Color.WHITE)
+                        music_list_next_title_tag.setTextColor(Color.WHITE)
+                        music_list_next_title.setTextColor(Color.WHITE)
                         music_list_up.setColorFilter(Color.WHITE)
                         music_list_menu.setColorFilter(Color.WHITE)
-                    }*/
+                    }
+                    this.statusColor = it.primaryTextColor
+                    this.isLight = it.isLight
+
                     (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_EXPANDED
                 }, bitmap)
-
             }
         }
     }
 
     override fun onDurationChanged(duration: Int) {
-        music_seek.max = duration
-        music_time_total.text = getTimeString(duration)
+        activity?.runOnUiThread {
+            music_seek.max = duration
+            music_time_total.text = getTimeString(duration)
+        }
     }
 
     override fun onPositionChanged(position: Int) {
         if (!userIsSeeking) {
-            music_seek.progress = position
-            music_time.text = getTimeString(position)
+            activity?.runOnUiThread {
+                music_seek.progress = position
+                music_time.text = getTimeString(position)
+            }
         }
     }
 
     override fun onStateChanged(state: Int) {
-        when (state) {
-            PlaybackInfoListener.State.PAUSED -> {
-                music_pause.setImageResource(R.drawable.ic_play_circle_outline)
-                toolbar_pause.setImageResource(R.drawable.ic_play_arrow_24dp)
-            }
-            PlaybackInfoListener.State.PLAYING -> {
-                music_pause.setImageResource(R.drawable.ic_pause_circle_outline)
-                toolbar_pause.setImageResource(R.drawable.ic_pause_24dp)
+        activity?.runOnUiThread {
+            when (state) {
+                PlaybackInfoListener.State.PAUSED -> {
+                    music_pause.setImageResource(R.drawable.ic_play_circle_outline)
+                    toolbar_pause.setImageResource(R.drawable.ic_play_arrow_24dp)
+                }
+                PlaybackInfoListener.State.PLAYING -> {
+                    music_pause.setImageResource(R.drawable.ic_pause_circle_outline)
+                    toolbar_pause.setImageResource(R.drawable.ic_pause_24dp)
+                }
             }
         }
     }
@@ -295,4 +284,39 @@ class PlayerFragment : BaseFragment(), View.OnClickListener, PlaybackInfoListene
         TransitionManager.beginDelayedTransition(toolbar_collapse, transition)
         toolbar_collapse.visibility = if (toolbar_collapse.visibility == View.GONE) View.VISIBLE else View.GONE
     }
+
+    private fun setSystemBarTheme(decorView: View, pIsDark: Boolean) {
+        val lFlags = decorView.systemUiVisibility
+        decorView.systemUiVisibility =
+            if (pIsDark) lFlags and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            else lFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+    }
 }
+
+/*                    if (processor.isLight) {
+                        music_previous.setColorFilter(Color.DKGRAY)
+                        music_minus.setColorFilter(Color.DKGRAY)
+                        music_next.setColorFilter(Color.DKGRAY)
+                        music_plus.setColorFilter(Color.DKGRAY)
+                        toolbar_pause.setColorFilter(Color.DKGRAY)
+                        toolbar_cancel.setColorFilter(Color.DKGRAY)
+                        music_down.setColorFilter(Color.DKGRAY)
+                        music_menu.setColorFilter(Color.DKGRAY)
+                        music_time.setTextColor(Color.DKGRAY)
+                        music_time_total.setTextColor(Color.DKGRAY)
+                        music_list_up.setColorFilter(Color.DKGRAY)
+                        music_list_menu.setColorFilter(Color.DKGRAY)
+                    } else {
+                        music_previous.setColorFilter(Color.WHITE)
+                        music_minus.setColorFilter(Color.WHITE)
+                        music_next.setColorFilter(Color.WHITE)
+                        music_plus.setColorFilter(Color.WHITE)
+                        toolbar_pause.setColorFilter(Color.WHITE)
+                        toolbar_cancel.setColorFilter(Color.WHITE)
+                        music_down.setColorFilter(Color.WHITE)
+                        music_menu.setColorFilter(Color.WHITE)
+                        music_time.setTextColor(Color.WHITE)
+                        music_time_total.setTextColor(Color.WHITE)
+                        music_list_up.setColorFilter(Color.WHITE)
+                        music_list_menu.setColorFilter(Color.WHITE)
+                    }*/

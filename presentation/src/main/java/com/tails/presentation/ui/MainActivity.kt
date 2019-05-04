@@ -23,12 +23,13 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
+    lateinit var playerBehavior: BottomSheetBehavior<View?>
+    lateinit var searchView: SearchView
+
     private val broadcastReceiver = MusicControlReceiver()
+    private var isSearchBack = false
 
     private lateinit var navController: NavController
-    private var isSearchBack = false
-    lateinit var playerBehavior: BottomSheetBehavior<View?>
-
     private val bottomNavigationViewBehavior: BottomSheetBehavior<BottomNavigationView> by lazy {
         BottomSheetBehavior.from(bottomNavigationView)
     }
@@ -59,12 +60,14 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.search, menu)
 
         val searchItem = menu.findItem(R.id.searchFragment)
-        val searchView = searchItem.actionView as SearchView
-        val v = searchView.findViewById(androidx.appcompat.R.id.search_plate) as View
-        val txtSearch = searchView.findViewById(androidx.appcompat.R.id.search_src_text) as EditText
+        searchView = searchItem.actionView as SearchView
 
         searchView.queryHint = "검색"
         searchView.maxWidth = Integer.MAX_VALUE
+
+        val v = searchView.findViewById(androidx.appcompat.R.id.search_plate) as View
+        val txtSearch = searchView.findViewById(androidx.appcompat.R.id.search_src_text) as EditText
+
         v.setBackgroundColor(Color.TRANSPARENT)
         txtSearch.setTextColor(Color.argb(255, 255, 87, 34))
 
@@ -80,17 +83,6 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         })
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(s: String): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(s: String): Boolean {
-                return false
-            }
-        })
-
         return true
     }
 

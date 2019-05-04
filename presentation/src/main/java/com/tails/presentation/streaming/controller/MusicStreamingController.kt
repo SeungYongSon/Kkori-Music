@@ -3,28 +3,24 @@ package com.tails.presentation.streaming.controller
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.wifi.WifiManager
+import android.os.PowerManager
 import androidx.work.*
 import com.tails.presentation.streaming.extractor.MusicExtractor
 import com.tails.presentation.streaming.notification.MusicControlNotification
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 
 class MusicStreamingController(context: Context, workerParameters: WorkerParameters) :
-    Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener {
+    Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
 
     companion object {
-
         var isPreparing: Boolean = false
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
 
         lateinit var playbackInfoListener: PlaybackInfoListener
 
-        private const val PLAYBACK_POSITION_REFRESH_INTERVAL_MS = 1000
-
         private var mediaPlayer: MediaPlayer? = null
-        private var executor: ScheduledExecutorService? = null
+        private var wifiLock: WifiManager.WifiLock? = null
 
         private lateinit var url: String
 
@@ -39,17 +35,6 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             }
 
         private lateinit var musicExtractor: MusicExtractor
-
-        fun prepare(videoId: String) {
-            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
-        }
-
-        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
-            musicExtractor = MusicExtractor(context)
-            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
-            this.playbackInfoListener = playbackInfoListener
-            isPreparing = true
-        }
 
         fun controlRequest(action: String) {
             workManager.enqueue(
@@ -82,39 +67,17 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
                 ).build()
             )
         }
-    }
 
-    override fun doWork(): Result = try {
-        when (inputData.getString("control")) {
-            "load" -> {
-                loadMusic(inputData.getString("streamUrl")!!)
-                Result.success()
-            }
-            "play" -> {
-                play()
-                Result.success()
-            }
-            "pause" -> {
-                pause()
-                Result.success()
-            }
-            "seek" -> {
-                val position = inputData.getInt("seekPosition", 0)
-                seekTo(position)
-                Result.success()
-            }
-            "reset" -> {
-                reset()
-                Result.success()
-            }
-            "release" -> {
-                release()
-                Result.success()
-            }
-            else -> Result.failure()
+        fun prepare(videoId: String) {
+            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
         }
-    } catch (e: Exception) {
-        Result.failure()
+
+        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
+            musicExtractor = MusicExtractor(context)
+            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+            this.playbackInfoListener = playbackInfoListener
+            isPreparing = true
+        }
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
@@ -124,13 +87,18 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         play()
     }
 
+    override fun onCompletion(mp: MediaPlayer?) {
+        stopToUpdateSeekBar()
+        playbackInfoListener.onStateChanged(PlaybackInfoListener.State.COMPLETED)
+        playbackInfoListener.onPlaybackCompleted()
+    }
+
     override fun loadMusic(streamUrl: String) {
         initializeMediaPlayer()
         if (mediaPlayer != null) {
             url = streamUrl
-
             mediaPlayer!!.setDataSource(streamUrl)
-            mediaPlayer!!.prepare()
+            mediaPlayer!!.prepareAsync()
         }
     }
 
@@ -138,7 +106,6 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         if (mediaPlayer != null) {
             mediaPlayer!!.start()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING)
-            startUpdatingCallbackWithPosition()
             MusicControlNotification.showNotification(applicationContext, musicExtractor.videoMeta)
         }
     }
@@ -163,15 +130,17 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.RESET)
             MusicControlNotification.removeNotification(applicationContext)
             loadMusic(url)
-            stopUpdatingCallbackWithPosition(true)
+            stopToUpdateSeekBar()
         }
     }
 
     override fun release() {
         if (mediaPlayer != null) {
+            wifiLock!!.release()
             mediaPlayer!!.stop()
             mediaPlayer!!.release()
             mediaPlayer = null
+            stopToUpdateSeekBar()
             MusicControlNotification.removeNotification(applicationContext)
         }
     }
@@ -192,42 +161,41 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            setOnCompletionListener {
-                stopUpdatingCallbackWithPosition(true)
-                playbackInfoListener.onStateChanged(PlaybackInfoListener.State.COMPLETED)
-                playbackInfoListener.onPlaybackCompleted()
-            }
+            setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
             setOnPreparedListener(this@MusicStreamingController)
+            setOnCompletionListener(this@MusicStreamingController)
             isLooping = true
         }
+
+        wifiLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
+            .createWifiLock(WifiManager.WIFI_MODE_FULL, "wifiLock")
+        wifiLock!!.acquire()
     }
 
-    private fun startUpdatingCallbackWithPosition() {
-        val seekBarPositionUpdateTask = Runnable { updateProgressCallbackTask() }
-
-        executor = Executors.newSingleThreadScheduledExecutor().apply {
-            scheduleAtFixedRate(
-                seekBarPositionUpdateTask,
-                0,
-                PLAYBACK_POSITION_REFRESH_INTERVAL_MS.toLong(),
-                TimeUnit.MILLISECONDS
-            )
+    override fun doWork(): Result = try {
+        when (inputData.getString("control")) {
+            "load" -> loadMusic(inputData.getString("streamUrl")!!)
+            "play" -> play()
+            "pause" -> pause()
+            "seek" -> seekTo(inputData.getInt("seekPosition", 0))
+            "reset" -> reset()
+            "release" -> release()
+            "seekUpdate" -> updateSeekBar()
+            else -> Result.failure()
         }
+        Result.success()
+    } catch (e: Exception) {
+        Result.failure()
     }
 
-    private fun stopUpdatingCallbackWithPosition(resetUIPlaybackPosition: Boolean) {
-        if (executor != null) {
-            executor!!.shutdownNow()
-            if (resetUIPlaybackPosition) {
-                playbackInfoListener.onPositionChanged(0)
-            }
-        }
-    }
-
-    private fun updateProgressCallbackTask() {
-        if (mediaPlayer != null) {
+    private fun updateSeekBar() {
+        if (isPlaying) {
             val currentPosition = mediaPlayer!!.currentPosition
             playbackInfoListener.onPositionChanged(currentPosition)
         }
+    }
+
+    private fun stopToUpdateSeekBar() {
+        playbackInfoListener.onPositionChanged(0)
     }
 }

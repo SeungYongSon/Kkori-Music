@@ -20,9 +20,7 @@ class MusicControlReceiver : BroadcastReceiver() {
             }
             "kkori.next" -> {
             }
-            "kkori.cancel" -> {
-                MusicStreamingController.controlRequest("release")
-            }
+            "kkori.cancel" -> MusicStreamingController.controlRequest("release")
         }
     }
 }
