@@ -3,7 +3,7 @@ package com.tails.data.remote.search
 object SearchConfig{
     const val YOUTUBE_REGEX = "(?:[?&]vi?=|\\/embed\\/|\\/\\d\\d?\\/|\\/vi?\\/|https?:\\/\\/(?:www\\.)?youtu\\.be\\/)([A-Za-z0-9_\\-]{11})"
 
-    const val YOUTUBE_API = "AIzaSyCm8Ij35766_QvZYVZX0E8gWeTY4M3s87c"
+    const val YOUTUBE_API = "AIzaSyDpchS8E9StjLnlvT8sSFbMK8HwybRhpm4"
     const val YOUTUBE_SEARCH_LIST_TYPE = "video"
     const val YOUTUBE_SEARCH_LIST_PART = "id,snippet"
     const val YOUTUBE_SEARCH_LIST_FIELDS = "pageInfo,nextPageToken,items(id/videoId,snippet/title,snippet/thumbnails/default/url)"
