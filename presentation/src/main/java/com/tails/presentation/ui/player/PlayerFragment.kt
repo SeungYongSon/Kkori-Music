@@ -60,8 +60,8 @@ class PlayerFragment : BaseFragment(),
                             (activity as MainActivity).window.apply {
                                 statusBarColor = statusColor
                                 //navigationBarColor = statusColor
-                                if (isLight) setSystemBarTheme(decorView, false)
-                                else setSystemBarTheme(decorView, true)
+                                if (isLight) setSystemBarTheme(decorView, true)
+                                else setSystemBarTheme(decorView, false)
                             }
                         }
                         BottomSheetBehavior.STATE_COLLAPSED -> {
@@ -110,6 +110,8 @@ class PlayerFragment : BaseFragment(),
         music_down.setOnClickListener(this)
         toolbar_collapse.setOnClickListener(this)
 
+        back_click_block.setOnClickListener(this)
+
         music_seek.setOnSeekBarChangeListener(this)
     }
 
@@ -127,7 +129,8 @@ class PlayerFragment : BaseFragment(),
                     MusicStreamingController.controlRequest("play")
             R.id.toolbar_cancel -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             R.id.music_down -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-            R.id.toolbar_collapse -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            R.id.toolbar_collapse -> (activity as MainActivity).playerBehavior.state =
+                BottomSheetBehavior.STATE_EXPANDED
         }
     }
 
@@ -149,6 +152,7 @@ class PlayerFragment : BaseFragment(),
     override fun onPrepareCompleted(videoMeta: VideoMeta) {
         AsyncTask.execute {
             val bitmap = Glide.with(context!!).asBitmap().load(videoMeta.getMqImageUrl()).submit().get()
+//            val bigBitmap = Glide.with(context!!).asBitmap().load(videoMeta.getSdImageUrl()).submit().get()
 
             activity?.runOnUiThread {
                 music_title.text = videoMeta.title
@@ -156,6 +160,8 @@ class PlayerFragment : BaseFragment(),
                 toolbar_music_title.text = videoMeta.title
                 toolbar_music_uploader.text = videoMeta.author
 
+                background.setImageBitmap(bitmap)
+//                background.setImageBitmap(bigBitmap)
                 music_image.setImageBitmap(bitmap)
                 toolbar_image.setImageBitmap(bitmap)
 
@@ -165,7 +171,19 @@ class PlayerFragment : BaseFragment(),
                     val foregroundColor = it.primaryTextColor
                     val secondaryColor = it.secondaryTextColor
 
-                    root_layout.setBackgroundColor(backgroundColor)
+                    val backgroundColorA = Color.alpha(backgroundColor)
+                    val backgroundColorR = Color.red(backgroundColor)
+                    val backgroundColorG = Color.green(backgroundColor)
+                    val backgroundColorB = Color.blue(backgroundColor)
+
+                    back_click_block.setBackgroundColor(
+                        Color.argb(
+                            backgroundColorA + 191,
+                            backgroundColorR,
+                            backgroundColorG,
+                            backgroundColorB
+                        )
+                    )
 
                     music_title.setTextColor(foregroundColor)
                     music_uploader.setTextColor(secondaryColor)
@@ -190,13 +208,13 @@ class PlayerFragment : BaseFragment(),
                     music_time.setTextColor(it.primaryTextColor)
                     music_time_total.setTextColor(it.primaryTextColor)
 
-/*                    music_list.setBackgroundColor(it.secondaryTextColor)
+                    music_list.setBackgroundColor(it.secondaryTextColor)
                     music_list_next_title_tag.setTextColor(it.backgroundColor)
                     music_list_next_title.setTextColor(it.backgroundColor)
                     music_list_up.setColorFilter(it.backgroundColor)
-                    music_list_menu.setColorFilter(it.backgroundColor)*/
+                    music_list_menu.setColorFilter(it.backgroundColor)
 
-                    music_list.setBackgroundColor(it.secondaryTextColor)
+/*                    music_list.setBackgroundColor(it.secondaryTextColor)
                     if (isLight) {
                         music_list.setBackgroundColor(Color.DKGRAY)
                         music_list_next_title_tag.setTextColor(Color.DKGRAY)
@@ -208,7 +226,8 @@ class PlayerFragment : BaseFragment(),
                         music_list_next_title.setTextColor(Color.WHITE)
                         music_list_up.setColorFilter(Color.WHITE)
                         music_list_menu.setColorFilter(Color.WHITE)
-                    }
+                    }*/
+
                     this.statusColor = it.primaryTextColor
                     this.isLight = it.isLight
 

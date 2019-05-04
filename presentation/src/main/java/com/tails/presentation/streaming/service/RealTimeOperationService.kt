@@ -12,7 +12,7 @@ import com.tails.presentation.streaming.notification.MusicControlNotification
 
 class RealTimeOperationService : Service() {
 
-    private val seekHandler = Handler()
+//    private val seekHandler = Handler()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
@@ -26,26 +26,28 @@ class RealTimeOperationService : Service() {
             }
         }
 
-        seekHandler.post(object : Runnable {
-            override fun run() {
-                if (MusicStreamingController.isPlaying) {
-                    MusicStreamingController.controlRequest("seekUpdate")
-                }
-                seekHandler.postDelayed(this, 1000)
-            }
-        })
+//        seekHandler.post(object : Runnable {
+//            override fun run() {
+//                if(!MusicStreamingController.isPreparing) {
+//                    if (MusicStreamingController.isPlaying) {
+//                        MusicStreamingController.controlRequest("seekUpdate")
+//                    }
+//                }
+//                seekHandler.postDelayed(this, 1000)
+//            }
+//        })
 
         return START_NOT_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        seekHandler.removeCallbacks(null)
+//        seekHandler.removeCallbacks(null)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        seekHandler.removeCallbacks(null)
+//        seekHandler.removeCallbacks(null)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) stopForeground(true)
         else with(NotificationManagerCompat.from(applicationContext)) { cancel(20011203) }
 

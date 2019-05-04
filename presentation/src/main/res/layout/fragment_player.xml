@@ -7,6 +7,15 @@
     android:id="@+id/root_layout"
     android:background="@android:color/white">
 
+    <ImageView android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:scaleType="centerCrop"
+               android:id="@+id/background"/>
+
+    <ImageView android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:id="@+id/back_click_block"/>
+
     <LinearLayout android:layout_width="match_parent"
                   android:layout_height="?attr/actionBarSize"
                   android:orientation="horizontal"

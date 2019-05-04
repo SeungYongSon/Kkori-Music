@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.wifi.WifiManager
+import android.os.Handler
 import android.os.PowerManager
 import androidx.work.*
 import com.tails.presentation.streaming.extractor.MusicExtractor
@@ -16,6 +17,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         var isPreparing: Boolean = false
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
+
 
         lateinit var playbackInfoListener: PlaybackInfoListener
 
@@ -35,6 +37,8 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             }
 
         private lateinit var musicExtractor: MusicExtractor
+
+        private val seekHandler = Handler()
 
         fun controlRequest(action: String) {
             workManager.enqueue(
@@ -68,8 +72,10 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             )
         }
 
-        fun prepare(videoId: String) {
+        fun prepare(videoId: String, context: Context) {
+            musicExtractor = MusicExtractor(context)
             musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+            isPreparing = true
         }
 
         fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
@@ -140,7 +146,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             mediaPlayer!!.stop()
             mediaPlayer!!.release()
             mediaPlayer = null
-            stopToUpdateSeekBar()
+            offSeekHandler()
             MusicControlNotification.removeNotification(applicationContext)
         }
     }
@@ -150,10 +156,13 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             val duration = mediaPlayer!!.duration
             playbackInfoListener.onDurationChanged(duration)
             playbackInfoListener.onPositionChanged(0)
+            onSeekHandler()
         }
     }
 
     private fun initializeMediaPlayer() {
+        if (mediaPlayer != null) mediaPlayer!!.release()
+
         mediaPlayer = MediaPlayer().apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
@@ -188,10 +197,25 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         Result.failure()
     }
 
+    private fun onSeekHandler() {
+        seekHandler.post(object : Runnable {
+            override fun run() {
+                if (mediaPlayer != null) updateSeekBar()
+                seekHandler.postDelayed(this, 1000)
+            }
+        })
+    }
+
+    private fun offSeekHandler() {
+        seekHandler.removeCallbacks(null)
+        stopToUpdateSeekBar()
+    }
+
     private fun updateSeekBar() {
-        if (isPlaying) {
+        if (mediaPlayer != null) {
             val currentPosition = mediaPlayer!!.currentPosition
             playbackInfoListener.onPositionChanged(currentPosition)
+
         }
     }
 

@@ -12,7 +12,9 @@ import java.text.NumberFormat
 import java.util.*
 import java.util.regex.Pattern
 
-object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
+
+
+class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<String, Void, List<YtVideo>>() {
 
     private val youtube = YouTube.Builder(
         NetHttpTransport(),
@@ -31,6 +33,18 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
     private lateinit var keywords: String
     private lateinit var nextPageToken: String
 
+    fun search(keywords: String) {
+        this.keywords = keywords
+        this.nextPageToken = ""
+        this.execute()
+    }
+
+    fun search(keywords: String, token: String) {
+        this.keywords = keywords
+        this.nextPageToken = token
+        this.execute()
+    }
+
     override fun doInBackground(vararg params: String?): List<YtVideo>? {
         try {
             return searchVideos()
@@ -40,13 +54,10 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
         return null
     }
 
-    fun search(keywords: String) {
-        this.keywords = keywords
-        this.nextPageToken = ""
-        this.execute()
+    override fun onPostExecute(result: List<YtVideo>?) {
+        super.onPostExecute(result)
+        if (result != null) searchComplete.onSearchComplete(result, nextPageToken)
     }
-
-    fun searchNext() = this.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR)
 
     private fun searchVideos(): List<YtVideo> {
         val ytVideos = ArrayList<YtVideo>()
@@ -103,7 +114,8 @@ object YouTubeSearcher : AsyncTask<String, Void, List<YtVideo>>() {
                 val searchResp = searchList.execute()
                 val searchResults = searchResp.items
 
-                nextPageToken = searchResp.nextPageToken
+                if (searchResp.nextPageToken != null)
+                    this.nextPageToken = searchResp.nextPageToken
 
                 videoList.id = Util.concatenateIDs(searchResults)
                 val resp = videoList.execute()
