@@ -7,7 +7,8 @@ data class VideoMeta(
     val channelId: String?,
     val videoLength: Long,
     val viewCount: Long,
-    val isLiveStream: Boolean
+    val isLiveStream: Boolean,
+    val infoStream: String
 ) {
     companion object {
         private const val IMAGE_BASE_URL = "https://i.ytimg.com/vi/"

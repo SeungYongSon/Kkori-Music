@@ -36,11 +36,11 @@ class PlayerFragment : BaseFragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setPlayerBehavior()
-        MusicStreamingController.prepare(this, context!!, "iR1sAex__VA")
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        MusicStreamingController.playbackInfoListener = this@PlayerFragment
         initializeUI()
     }
 
@@ -91,7 +91,6 @@ class PlayerFragment : BaseFragment(),
                         }
                     }
                 }
-
                 override fun onSlide(p0: View, p1: Float) {}
             })
         }

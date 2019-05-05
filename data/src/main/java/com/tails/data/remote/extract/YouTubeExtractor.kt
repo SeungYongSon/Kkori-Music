@@ -8,23 +8,23 @@ import android.util.Log
 import android.util.SparseArray
 import com.evgenii.jsevaluator.JsEvaluator
 import com.evgenii.jsevaluator.interfaces.JsCallback
+import com.tails.data.remote.VideoMetaParser
 import com.tails.domain.entities.Format
 import com.tails.domain.entities.VideoMeta
 import com.tails.domain.entities.YtFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.*
 import java.lang.ref.WeakReference
 import java.net.URLDecoder
-import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFile>() {
+class YouTubeExtractor(private val extractComplete: ExtractComplete, context: Context) :
+    AsyncTask<VideoMeta, Void, YtFile>() {
 
     companion object {
         private const val LOG_TAG = "YouTubeExtractor"
@@ -39,11 +39,6 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFi
         private val patDashManifest2 = Pattern.compile("\"dashmpd\":\"(.+?)\"")
         private val patDashManifestEncSig = Pattern.compile("/s/([0-9A-F|.]{10,}?)(/|\\z)")
 
-        private val patTitle = Pattern.compile("title=(.*?)(&|\\z)")
-        private val patAuthor = Pattern.compile("author=(.+?)(&|\\z)")
-        private val patChannelId = Pattern.compile("ucid=(.+?)(&|\\z)")
-        private val patLength = Pattern.compile("length_seconds=(\\d+?)(&|\\z)")
-        private val patViewCount = Pattern.compile("view_count=(\\d+?)(&|\\z)")
         private val patStatusOk = Pattern.compile("status=ok(&|,|\\z)")
 
         private val patHlsvp = Pattern.compile("hlsvp=(.+?)(&|\\z)")
@@ -185,51 +180,41 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFi
     private val lock = ReentrantLock()
     private val jsExecuting = lock.newCondition()
 
-    fun extract(videoID: String, parseDashManifest: Boolean, includeWebM: Boolean) {
+    fun extract(videoMeta: VideoMeta, parseDashManifest: Boolean, includeWebM: Boolean) {
         this.parseDashManifest = parseDashManifest
         this.includeWebM = includeWebM
-        this.execute(videoID)
+        this.execute(videoMeta)
     }
 
     override fun onPostExecute(result: YtFile) {
-        onExtractionComplete(result, videoMeta)
+        extractComplete.onExtractComplete(result, videoMeta)
     }
 
-    protected abstract fun onExtractionComplete(ytFile: YtFile?, videoMeta: VideoMeta?)
-
-    override fun doInBackground(vararg params: String): YtFile? {
-        videoID = params[0]
-
-        if (videoID.isNotEmpty()) {
-            try {
-                while(true) {
-                    val ytFiles = getStreamUrls()
-                    val result = getBestStream(ytFiles)
-                    if (result != null && result.url!!.contains("&signature=")) {
-                        return result
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
+    override fun doInBackground(vararg params: VideoMeta): YtFile? {
+        videoMeta = params[0]
+        videoID = videoMeta.videoId!!
+        var isSuccess = true
+        try {
+            while (true) {
+                val ytFiles =
+                    if (isSuccess) getStreamUrls(params[0])
+                    else getStreamUrls()
+                val result = getBestStream(ytFiles)
+                isSuccess = result != null && result.url!!.contains("&signature=")
+                if (isSuccess) return result
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         Log.e(LOG_TAG, "videoID = null")
         return null
     }
 
     @Throws(IOException::class, InterruptedException::class)
-    private fun getStreamUrls(): SparseArray<YtFile>? {
+    private fun getStreamUrls(videoMeta: VideoMeta): SparseArray<YtFile>? {
         var dashMpdUrl: String? = null
 
-        val reqVideoInfo = Request.Builder()
-            .url("https://www.youtube.com/get_video_info?video_id=$videoID&eurl=https://youtube.googleapis.com/v/$videoID")
-            .addHeader("User-Agent", USER_AGENT)
-            .build()
-
-        val resBody = client.newCall(reqVideoInfo).execute().body()!!
-        var streamMap = resBodyToStream(resBody)
-
-        parseVideoMeta(streamMap)
+        var streamMap = videoMeta.infoStream
 
         var mat: Matcher
         var curJsFileName: String? = null
@@ -450,14 +435,237 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFi
         return ytFiles
     }
 
-    private fun resBodyToStream(resBody: ResponseBody): String {
-        val source = resBody.source().apply {
-            request(Long.MAX_VALUE)
-        }
-        val buffer = source.buffer()
-        val charset = Charset.forName("UTF-8")
+    @Throws(IOException::class, InterruptedException::class)
+    private fun getStreamUrls(): SparseArray<YtFile>? {
+        var dashMpdUrl: String? = null
 
-        return buffer.readString(charset)
+        val reqVideoInfo = Request.Builder()
+            .url("https://www.youtube.com/get_video_info?video_id=$videoID&eurl=https://youtube.googleapis.com/v/$videoID")
+            .addHeader("User-Agent", USER_AGENT)
+            .build()
+
+        val resBody = client.newCall(reqVideoInfo).execute().body()!!
+        var streamMap = VideoMetaParser.resBodyToStream(resBody)
+
+        videoMeta = VideoMetaParser.parseVideoMeta(streamMap, videoID)
+
+        var mat: Matcher
+        var curJsFileName: String? = null
+        val streams: Array<String>
+        var encSignatures: SparseArray<String>? = null
+
+        if (videoMeta.isLiveStream) {
+            mat = patHlsvp.matcher(streamMap)
+            if (mat.find()) {
+                val hlsvp = URLDecoder.decode(mat.group(1), "UTF-8")
+                val ytFiles = SparseArray<YtFile>()
+
+                val reqHlsvp = Request.Builder()
+                    .url(hlsvp)
+                    .addHeader("User-Agent", USER_AGENT)
+                    .build()
+
+                val hlsvpBody = client.newCall(reqHlsvp).execute().body()!!
+                val bodyInputStream = hlsvpBody.source().inputStream()
+                val reader = BufferedReader(InputStreamReader(bodyInputStream))
+                var line: String
+                reader.use {
+                    while (true) {
+                        line = it.readLine()
+                        if (line.startsWith("https://") || line.startsWith("http://")) {
+                            mat = patHlsItag.matcher(line)
+                            if (mat.find()) {
+                                val itag = Integer.parseInt(mat.group(1))
+                                val newFile = YtFile(
+                                    FORMAT_MAP.get(itag), line
+                                )
+                                ytFiles.put(itag, newFile)
+                            }
+                        }
+                    }
+                }
+                if (ytFiles.size() == 0) {
+                    return null
+                }
+                return ytFiles
+            }
+            return null
+        }
+
+        var sigEnc = true
+        var statusFail = false
+        if (streamMap.contains(STREAM_MAP_STRING)) {
+            val streamMapSub = streamMap.substring(streamMap.indexOf(STREAM_MAP_STRING))
+            mat = patIsSigEnc.matcher(streamMapSub)
+            if (!mat.find()) {
+                sigEnc = false
+
+                if (!patStatusOk.matcher(streamMap).find())
+                    statusFail = true
+            }
+        }
+
+        if (sigEnc || statusFail) {
+            if (decipherJsFileName == null || decipherFunctions == null || decipherFunctionName == null)
+                readDecipherFunctFromCache()
+
+            val reqYouTube = Request.Builder()
+                .url("https://youtube.com/watch?v=$videoID")
+                .addHeader("User-Agent", USER_AGENT)
+                .build()
+
+            val youTubeBody = client.newCall(reqYouTube).execute().body()!!
+            val bodyInputStream = youTubeBody.source().inputStream()
+            val reader = BufferedReader(InputStreamReader(bodyInputStream))
+            var line: String
+            reader.use {
+                while (true) {
+                    line = it.readLine()
+                    if (line.contains(STREAM_MAP_STRING)) {
+                        streamMap = line.replace("\\u0026", "&")
+                        break
+                    }
+                }
+                reader.close()
+            }
+
+            encSignatures = SparseArray()
+
+            mat = patDecryptionJsFile.matcher(streamMap)
+            if (mat.find()) {
+                curJsFileName = mat.group(1).replace("\\/", "/")
+                if (mat.group(2) != null)
+                    curJsFileName.replace(mat.group(2), "")
+                if (decipherJsFileName == null || decipherJsFileName != curJsFileName) {
+                    decipherFunctions = null
+                    decipherFunctionName = null
+                }
+                decipherJsFileName = curJsFileName
+            }
+
+            if (parseDashManifest) {
+                mat = patDashManifest2.matcher(streamMap)
+                if (mat.find()) {
+                    dashMpdUrl = mat.group(1).replace("\\/", "/")
+                    mat = patDashManifestEncSig.matcher(dashMpdUrl)
+                    if (mat.find()) {
+                        encSignatures.append(0, mat.group(1))
+                    } else {
+                        dashMpdUrl = null
+                    }
+                }
+            }
+        } else {
+            if (parseDashManifest) {
+                mat = patDashManifest1.matcher(streamMap)
+                if (mat.find()) {
+                    dashMpdUrl = URLDecoder.decode(mat.group(1), "UTF-8")
+                }
+            }
+            streamMap = URLDecoder.decode(streamMap, "UTF-8")
+        }
+
+        streams = streamMap.split(",|$STREAM_MAP_STRING|&adaptive_fmts=".toRegex()).dropLastWhile { it.isEmpty() }
+            .toTypedArray()
+        val ytFiles = SparseArray<YtFile>()
+        for (it in streams) {
+            val encStream = "$it,"
+            if (!encStream.contains("itag%3D")) {
+                continue
+            }
+            val stream: String
+            stream = URLDecoder.decode(encStream, "UTF-8")
+
+            mat = patItag.matcher(stream)
+            val itag: Int
+            if (mat.find()) {
+                itag = Integer.parseInt(mat.group(1))
+                Log.d(LOG_TAG, "Itag found:$itag")
+                if (FORMAT_MAP.get(itag) == null) {
+                    Log.d(LOG_TAG, "Itag not in list:$itag")
+                    continue
+                } else if (!includeWebM && FORMAT_MAP.get(itag).ext.equals("webm")) {
+                    continue
+                }
+            } else {
+                continue
+            }
+
+            if (curJsFileName != null) {
+                mat = patEncSig.matcher(stream)
+                if (mat.find()) {
+                    encSignatures?.append(itag, mat.group(1))
+                }
+            }
+
+            mat = patUrl.matcher(encStream)
+            var url: String? = null
+            if (mat.find()) {
+                url = mat.group(1)
+            }
+
+            if (url != null) {
+                val format = FORMAT_MAP.get(itag)
+                val finalUrl = URLDecoder.decode(url, "UTF-8")
+                val newVideo = YtFile(format, finalUrl)
+                ytFiles.put(itag, newVideo)
+            }
+        }
+
+        if (encSignatures != null) {
+            Log.d(LOG_TAG, "Decipher signatures: " + encSignatures.size() + ", videos: " + ytFiles.size())
+            decipheredSignature = null
+            if (decipherSignature(encSignatures)) {
+                lock.lock()
+                try {
+                    jsExecuting.await(7, TimeUnit.SECONDS)
+                } finally {
+                    lock.unlock()
+                }
+            }
+            val signature = decipheredSignature
+            if (signature == null) {
+                return null
+            } else {
+                val sigs = signature.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+                var i = 0
+                while (i < encSignatures.size() && i < sigs.size) {
+                    val key = encSignatures.keyAt(i)
+                    if (key == 0) {
+                        if (dashMpdUrl != null) {
+                            dashMpdUrl = dashMpdUrl.replace("/s/" + encSignatures.get(key), "/signature/" + sigs[i])
+                        }
+                    } else {
+                        var url = ytFiles.get(key).url
+                        url += "&signature=" + sigs[i]
+                        val newFile = YtFile(
+                            FORMAT_MAP.get(key), url
+                        )
+                        ytFiles.put(key, newFile)
+                    }
+                    i++
+                }
+            }
+            if (parseDashManifest && dashMpdUrl != null) {
+                for (i in 0 until DASH_PARSE_RETRIES) {
+                    try {
+                        // It sometimes fails to connect for no apparent reason. We just retry.
+                        parseDashManifest(dashMpdUrl, ytFiles)
+                        break
+                    } catch (io: IOException) {
+                        Thread.sleep(5)
+                        Log.d(LOG_TAG, "Failed to parse dash manifest " + (i + 1))
+                    }
+
+                }
+            }
+
+            if (ytFiles.size() == 0) {
+                Log.d(LOG_TAG, streamMap)
+                return null
+            }
+        }
+        return ytFiles
     }
 
     @Throws(IOException::class)
@@ -583,7 +791,6 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFi
         return true
     }
 
-
     @Throws(IOException::class)
     private fun parseDashManifest(dashMpdUrl: String, ytFiles: SparseArray<YtFile>) {
         val patBaseUrl = Pattern.compile("<\\s*BaseURL(.*?)>(.+?)<\\s*/BaseURL\\s*>")
@@ -625,45 +832,6 @@ abstract class YouTubeExtractor(context: Context) : AsyncTask<String, Void, YtFi
                 ytFiles.append(itag, yf)
             }
         }
-    }
-
-    @Throws(UnsupportedEncodingException::class)
-    private fun parseVideoMeta(getVideoInfo: String) {
-        var isLiveStream = false
-        var title = ""
-        var author = ""
-        var channelId = ""
-        var viewCount: Long = 0
-        var length: Long = 0
-        var mat = patTitle.matcher(getVideoInfo)
-
-        if (mat.find()) {
-            title = URLDecoder.decode(mat.group(1), "UTF-8")
-        }
-
-        mat = patHlsvp.matcher(getVideoInfo)
-        if (mat.find()) {
-            isLiveStream = true
-        }
-
-        mat = patAuthor.matcher(getVideoInfo)
-        if (mat.find()) {
-            author = URLDecoder.decode(mat.group(1), "UTF-8")
-        }
-        mat = patChannelId.matcher(getVideoInfo)
-        if (mat.find()) {
-            channelId = mat.group(1)
-        }
-        mat = patLength.matcher(getVideoInfo)
-        if (mat.find()) {
-            length = java.lang.Long.parseLong(mat.group(1))
-        }
-        mat = patViewCount.matcher(getVideoInfo)
-        if (mat.find()) {
-            viewCount = java.lang.Long.parseLong(mat.group(1))
-        }
-        videoMeta =
-            VideoMeta(videoID, title, author, channelId, length, viewCount, isLiveStream)
     }
 
     private fun readDecipherFunctFromCache() {

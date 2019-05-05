@@ -6,14 +6,19 @@ import android.media.MediaPlayer
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.PowerManager
+import android.util.Log
 import androidx.work.*
-import com.tails.presentation.streaming.extractor.MusicExtractor
+import com.tails.data.remote.extract.ExtractComplete
+import com.tails.data.remote.extract.YouTubeExtractor
+import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entities.YtFile
 import com.tails.presentation.streaming.notification.MusicControlNotification
 
 class MusicStreamingController(context: Context, workerParameters: WorkerParameters) :
-    Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener {
+    Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener{
 
     companion object {
+
         var isPreparing: Boolean = false
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
@@ -36,7 +41,17 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
                 )
             }
 
-        private lateinit var musicExtractor: MusicExtractor
+        private lateinit var musicExtractor: YouTubeExtractor
+        private val extractComplete = object : ExtractComplete{
+            override fun onExtractComplete(ytFile: YtFile?, videoMeta: VideoMeta?) {
+                if (ytFile != null && videoMeta != null) {
+                    Log.e("result url", ytFile.url)
+                    this@Companion.videoMeta = videoMeta
+                    MusicStreamingController.controlRequest("load", "streamUrl", ytFile.url!!)
+                }
+            }
+        }
+        private lateinit var videoMeta: VideoMeta
 
         private val seekHandler = Handler()
 
@@ -72,15 +87,15 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             )
         }
 
-        fun prepare(videoId: String, context: Context) {
-            musicExtractor = MusicExtractor(context)
-            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+        fun prepare(videoMeta: VideoMeta, context: Context) {
+            musicExtractor = YouTubeExtractor(extractComplete, context)
+            musicExtractor.extract(videoMeta, parseDashManifest = true, includeWebM = true)
             isPreparing = true
         }
 
-        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoId: String) {
-            musicExtractor = MusicExtractor(context)
-            musicExtractor.extract(videoId, parseDashManifest = true, includeWebM = true)
+        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoMeta: VideoMeta) {
+            musicExtractor = YouTubeExtractor(extractComplete, context)
+            musicExtractor.extract(videoMeta, parseDashManifest = true, includeWebM = true)
             this.playbackInfoListener = playbackInfoListener
             isPreparing = true
         }
@@ -88,7 +103,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
 
     override fun onPrepared(mp: MediaPlayer?) {
         isPreparing = false
-        playbackInfoListener.onPrepareCompleted(musicExtractor.videoMeta)
+        playbackInfoListener.onPrepareCompleted(videoMeta)
         initializeProgressCallback()
         play()
     }
@@ -112,7 +127,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         if (mediaPlayer != null) {
             mediaPlayer!!.start()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING)
-            MusicControlNotification.showNotification(applicationContext, musicExtractor.videoMeta)
+            MusicControlNotification.showNotification(applicationContext, videoMeta)
         }
     }
 
@@ -126,7 +141,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         if (mediaPlayer != null && mediaPlayer!!.isPlaying) {
             mediaPlayer!!.pause()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PAUSED)
-            MusicControlNotification.showNotification(applicationContext, musicExtractor.videoMeta)
+            MusicControlNotification.showNotification(applicationContext, videoMeta)
         }
     }
 

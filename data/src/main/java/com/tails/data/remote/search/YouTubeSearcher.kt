@@ -5,16 +5,10 @@ import android.util.Log
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.tails.data.util.Util
-import com.tails.domain.entities.YtVideo
 import java.io.IOException
-import java.text.NumberFormat
 import java.util.*
-import java.util.regex.Pattern
 
-
-
-class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<String, Void, List<YtVideo>>() {
+class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<String, Void, List<String>>() {
 
     private val youtube = YouTube.Builder(
         NetHttpTransport(),
@@ -45,7 +39,7 @@ class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<St
         this.execute()
     }
 
-    override fun doInBackground(vararg params: String?): List<YtVideo>? {
+    override fun doInBackground(vararg params: String?): List<String>? {
         try {
             return searchVideos()
         } catch (e: Exception) {
@@ -54,98 +48,28 @@ class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<St
         return null
     }
 
-    override fun onPostExecute(result: List<YtVideo>?) {
+    override fun onPostExecute(result: List<String>?) {
         super.onPostExecute(result)
         if (result != null) searchComplete.onSearchComplete(result, nextPageToken)
     }
 
-    private fun searchVideos(): List<YtVideo> {
-        val ytVideos = ArrayList<YtVideo>()
+    private fun searchVideos(): List<String> {
+        val ytVideos = ArrayList<String>()
         try {
             searchList.q = keywords
             if (nextPageToken.isNotEmpty()) {
                 searchList.pageToken = nextPageToken
             }
 
-            val pattern = Pattern.compile(SearchConfig.YOUTUBE_REGEX)
-            val matcher = pattern.matcher(keywords)
+            val searchResp = searchList.execute()
+            val searchResults = searchResp.items
 
-            if (matcher.find()) {
-                val singleVideo = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_PART)
-                singleVideo.key = SearchConfig.YOUTUBE_API
-                singleVideo.fields = SearchConfig.YOUTUBE_VIDEO_FIELDS
-                singleVideo.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
-                singleVideo.id = matcher.group(1)
+            if (searchResp.nextPageToken != null)
+                this.nextPageToken = searchResp.nextPageToken
 
-                val resp = singleVideo.execute()
-                val videoResults = resp.items
-
-                videoResults.forEach {
-                    val item = YtVideo()
-
-                    if (it != null) {
-                        item.title = it.snippet.title
-                        item.thumbnailURL = it.snippet.thumbnails.default.url
-                        item.id = it.id
-
-                        if (it.statistics != null) {
-                            val viewsNumber = it.statistics.viewCount
-                            val viewsFormatted = NumberFormat.getIntegerInstance().format(viewsNumber) + " views"
-                            item.viewCount = viewsFormatted
-                        }
-
-                        if (it.contentDetails != null) {
-                            val isoTime = it.contentDetails.duration
-                            val time = Util.convertISO8601DurationToNormalTime(isoTime)
-                            item.duration = time
-                        }
-                    } else {
-                        item.duration = "NA"
-                    }
-                    ytVideos.add(item)
-                }
-                nextPageToken = ""
-            } else {
-                val videoList = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_LIST_PART)
-                videoList.key = SearchConfig.YOUTUBE_API
-                videoList.fields = SearchConfig.YOUTUBE_VIDEO_LIST_FIELDS
-                videoList.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
-
-                val searchResp = searchList.execute()
-                val searchResults = searchResp.items
-
-                if (searchResp.nextPageToken != null)
-                    this.nextPageToken = searchResp.nextPageToken
-
-                videoList.id = Util.concatenateIDs(searchResults)
-                val resp = videoList.execute()
-                val videoResults = resp.items
-
-                searchResults.forEach {
-                    if (it.id != null) {
-                        val item = YtVideo()
-
-                        item.title = it.snippet.title
-                        item.thumbnailURL = it.snippet.thumbnails.default.url
-                        item.id = it.id.videoId
-
-                        val videoResult = videoResults[0]
-                        if (videoResult != null) {
-                            if (videoResult.statistics != null) {
-                                val viewsNumber = videoResult.statistics.viewCount
-                                val viewsFormatted = NumberFormat.getIntegerInstance().format(viewsNumber) + " views"
-                                item.viewCount = viewsFormatted
-                            }
-                            if (videoResult.contentDetails != null) {
-                                val isoTime = videoResult.contentDetails.duration
-                                val time = Util.convertISO8601DurationToNormalTime(isoTime)
-                                item.duration = time
-                            }
-                        } else {
-                            item.duration = "NA"
-                        }
-                        ytVideos.add(item)
-                    }
+            searchResults.forEach {
+                if (it.id != null) {
+                    ytVideos.add(it.id.videoId)
                 }
             }
         } catch (e: IOException) {
