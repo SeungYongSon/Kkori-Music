@@ -72,7 +72,6 @@ class PlayerFragment : BaseFragment(),
 
                             (activity as MainActivity).window.apply {
                                 statusBarColor = Color.argb(255, 250, 250, 250)
-                                //navigationBarColor = Color.argb(255, 250, 250, 250)
                                 setSystemBarTheme(decorView, false)
                             }
                         }
@@ -84,13 +83,13 @@ class PlayerFragment : BaseFragment(),
 
                             (activity as MainActivity).window.apply {
                                 statusBarColor = Color.argb(255, 250, 250, 250)
-                                //navigationBarColor = Color.argb(255, 250, 250, 250)
                                 setSystemBarTheme(decorView, false)
                             }
                             MusicStreamingController.controlRequest("release")
                         }
                     }
                 }
+
                 override fun onSlide(p0: View, p1: Float) {}
             })
         }
@@ -151,7 +150,6 @@ class PlayerFragment : BaseFragment(),
     override fun onPrepareCompleted(videoMeta: VideoMeta) {
         AsyncTask.execute {
             val bitmap = Glide.with(context!!).asBitmap().load(videoMeta.getMqImageUrl()).submit().get()
-//            val bigBitmap = Glide.with(context!!).asBitmap().load(videoMeta.getSdImageUrl()).submit().get()
 
             activity?.runOnUiThread {
                 music_title.text = videoMeta.title
@@ -160,7 +158,6 @@ class PlayerFragment : BaseFragment(),
                 toolbar_music_uploader.text = videoMeta.author
 
                 background.setImageBitmap(bitmap)
-//                background.setImageBitmap(bigBitmap)
                 music_image.setImageBitmap(bitmap)
                 toolbar_image.setImageBitmap(bitmap)
 
@@ -213,20 +210,6 @@ class PlayerFragment : BaseFragment(),
                     music_list_up.setColorFilter(it.backgroundColor)
                     music_list_menu.setColorFilter(it.backgroundColor)
 
-/*                    music_list.setBackgroundColor(it.secondaryTextColor)
-                    if (isLight) {
-                        music_list.setBackgroundColor(Color.DKGRAY)
-                        music_list_next_title_tag.setTextColor(Color.DKGRAY)
-                        music_list_next_title.setTextColor(Color.DKGRAY)
-                        music_list_up.setColorFilter(Color.DKGRAY)
-                        music_list_menu.setColorFilter(Color.DKGRAY)
-                    } else {
-                        music_list_next_title_tag.setTextColor(Color.WHITE)
-                        music_list_next_title.setTextColor(Color.WHITE)
-                        music_list_up.setColorFilter(Color.WHITE)
-                        music_list_menu.setColorFilter(Color.WHITE)
-                    }*/
-
                     this.statusColor = it.primaryTextColor
                     this.isLight = it.isLight
 
@@ -270,13 +253,21 @@ class PlayerFragment : BaseFragment(),
     override fun onPlaybackCompleted() {}
 
     private fun getTimeString(mills: Int): String {
+        val h = mills / (1000 * 60 * 60)
         val m = mills % (1000 * 60 * 60) / (1000 * 60)
         val s = mills % (1000 * 60 * 60) % (1000 * 60) / 1000
 
-        return StringBuilder()
-            .append(String.format("%02d", m))
-            .append(":")
-            .append(String.format("%02d", s)).toString()
+        val sb = StringBuffer().apply {
+            if (h > 0) {
+                append(String.format("%02d", h))
+                append(":")
+            }
+            append(String.format("%02d", m))
+            append(":")
+            append(String.format("%02d", s)).toString()
+        }
+
+        return sb.toString()
     }
 
     private fun expandToolbarToggle() {
@@ -310,31 +301,3 @@ class PlayerFragment : BaseFragment(),
             else lFlags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
     }
 }
-
-/*                    if (processor.isLight) {
-                        music_previous.setColorFilter(Color.DKGRAY)
-                        music_minus.setColorFilter(Color.DKGRAY)
-                        music_next.setColorFilter(Color.DKGRAY)
-                        music_plus.setColorFilter(Color.DKGRAY)
-                        toolbar_pause.setColorFilter(Color.DKGRAY)
-                        toolbar_cancel.setColorFilter(Color.DKGRAY)
-                        music_down.setColorFilter(Color.DKGRAY)
-                        music_menu.setColorFilter(Color.DKGRAY)
-                        music_time.setTextColor(Color.DKGRAY)
-                        music_time_total.setTextColor(Color.DKGRAY)
-                        music_list_up.setColorFilter(Color.DKGRAY)
-                        music_list_menu.setColorFilter(Color.DKGRAY)
-                    } else {
-                        music_previous.setColorFilter(Color.WHITE)
-                        music_minus.setColorFilter(Color.WHITE)
-                        music_next.setColorFilter(Color.WHITE)
-                        music_plus.setColorFilter(Color.WHITE)
-                        toolbar_pause.setColorFilter(Color.WHITE)
-                        toolbar_cancel.setColorFilter(Color.WHITE)
-                        music_down.setColorFilter(Color.WHITE)
-                        music_menu.setColorFilter(Color.WHITE)
-                        music_time.setTextColor(Color.WHITE)
-                        music_time_total.setTextColor(Color.WHITE)
-                        music_list_up.setColorFilter(Color.WHITE)
-                        music_list_menu.setColorFilter(Color.WHITE)
-                    }*/

@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Kkori Music</string>
     <string name="home">홈</string>
-    <string name="hot">핫리스트</string>
     <string name="library">라이브러리</string>
+    <string name="history">기록</string>
     <string name="search">검색</string>
     <string name="list_next_title_tag">다음:</string>
 

@@ -13,16 +13,17 @@ import com.tails.data.remote.extract.YouTubeExtractor
 import com.tails.domain.entities.VideoMeta
 import com.tails.domain.entities.YtFile
 import com.tails.presentation.streaming.notification.MusicControlNotification
+import java.lang.IllegalStateException
 
 class MusicStreamingController(context: Context, workerParameters: WorkerParameters) :
-    Worker(context, workerParameters), PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener{
+    Worker(context, workerParameters),
+    PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     companion object {
 
         var isPreparing: Boolean = false
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
-
 
         lateinit var playbackInfoListener: PlaybackInfoListener
 
@@ -42,12 +43,12 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             }
 
         private lateinit var musicExtractor: YouTubeExtractor
-        private val extractComplete = object : ExtractComplete{
+        private val extractComplete = object : ExtractComplete {
             override fun onExtractComplete(ytFile: YtFile?, videoMeta: VideoMeta?) {
                 if (ytFile != null && videoMeta != null) {
                     Log.e("result url", ytFile.url)
                     this@Companion.videoMeta = videoMeta
-                    MusicStreamingController.controlRequest("load", "streamUrl", ytFile.url!!)
+                    controlRequest("load", "streamUrl", ytFile.url!!)
                 }
             }
         }
@@ -92,13 +93,6 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             musicExtractor.extract(videoMeta, parseDashManifest = true, includeWebM = true)
             isPreparing = true
         }
-
-        fun prepare(playbackInfoListener: PlaybackInfoListener, context: Context, videoMeta: VideoMeta) {
-            musicExtractor = YouTubeExtractor(extractComplete, context)
-            musicExtractor.extract(videoMeta, parseDashManifest = true, includeWebM = true)
-            this.playbackInfoListener = playbackInfoListener
-            isPreparing = true
-        }
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
@@ -114,8 +108,18 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
         playbackInfoListener.onPlaybackCompleted()
     }
 
+    override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+        release()
+        isPreparing = false
+        return false
+    }
+
     override fun loadMusic(streamUrl: String) {
+        if (mediaPlayer != null)
+            release()
+
         initializeMediaPlayer()
+
         if (mediaPlayer != null) {
             url = streamUrl
             mediaPlayer!!.setDataSource(streamUrl)
@@ -188,6 +192,7 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
             setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
             setOnPreparedListener(this@MusicStreamingController)
             setOnCompletionListener(this@MusicStreamingController)
+            setOnErrorListener(this@MusicStreamingController)
             isLooping = true
         }
 
@@ -215,8 +220,10 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
     private fun onSeekHandler() {
         seekHandler.post(object : Runnable {
             override fun run() {
-                if (mediaPlayer != null) updateSeekBar()
-                seekHandler.postDelayed(this, 1000)
+                if (mediaPlayer != null) {
+                    updateSeekBar()
+                    seekHandler.postDelayed(this, 1000)
+                }
             }
         })
     }
@@ -228,9 +235,10 @@ class MusicStreamingController(context: Context, workerParameters: WorkerParamet
 
     private fun updateSeekBar() {
         if (mediaPlayer != null) {
-            val currentPosition = mediaPlayer!!.currentPosition
-            playbackInfoListener.onPositionChanged(currentPosition)
-
+            try{
+                val currentPosition = mediaPlayer!!.currentPosition
+                playbackInfoListener.onPositionChanged(currentPosition)
+            } catch (e : IllegalStateException){ }
         }
     }
 

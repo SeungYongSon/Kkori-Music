@@ -1,10 +1,10 @@
-package com.tails.presentation.ui.adapter.list.diff
+package com.tails.presentation.ui.adapter.diff
 
 import androidx.recyclerview.widget.DiffUtil
 import com.tails.domain.entities.VideoMeta
 
 
-class ListDiffCallback(private val oldList: List<VideoMeta>, private val newList: List<VideoMeta>) :
+class VideoMetaDiffCallback(private val oldList: List<VideoMeta>, private val newList: List<VideoMeta>) :
     DiffUtil.Callback() {
 
     override fun getOldListSize(): Int = oldList.size

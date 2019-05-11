@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter.list.diff
+package com.tails.presentation.ui.adapter.wrapper
 
 import android.content.Context
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,7 +9,5 @@ class LinearLayoutManagerWrapper(context: Context, orientation: Int, reverseLayo
     reverseLayout
 ) {
 
-    override fun supportsPredictiveItemAnimations(): Boolean {
-        return false
-    }
+    override fun supportsPredictiveItemAnimations(): Boolean = false
 }

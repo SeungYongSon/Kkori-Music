@@ -10,10 +10,12 @@ import java.util.*
 
 class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<String, Void, List<String>>() {
 
-    private val youtube = YouTube.Builder(
-        NetHttpTransport(),
-        JacksonFactory()
-    ) {}.setApplicationName("Kkori Music").build()
+    companion object {
+        private val youtube = YouTube.Builder(
+            NetHttpTransport(),
+            JacksonFactory()
+        ) {}.setApplicationName("Kkori Music").build()
+    }
 
     private var searchList: YouTube.Search.List =
         youtube.search().list(SearchConfig.YOUTUBE_SEARCH_LIST_PART).let {
@@ -57,6 +59,7 @@ class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<St
         val ytVideos = ArrayList<String>()
         try {
             searchList.q = keywords
+
             if (nextPageToken.isNotEmpty()) {
                 searchList.pageToken = nextPageToken
             }

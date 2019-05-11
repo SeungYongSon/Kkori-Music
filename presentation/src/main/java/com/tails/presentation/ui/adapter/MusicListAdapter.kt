@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter.list
+package com.tails.presentation.ui.adapter
 
 import android.os.Handler
 import android.os.Looper
@@ -14,7 +14,7 @@ import com.bumptech.glide.Glide
 import com.tails.domain.entities.VideoMeta
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
-import com.tails.presentation.ui.adapter.list.diff.ListDiffCallback
+import com.tails.presentation.ui.adapter.diff.VideoMetaDiffCallback
 
 class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>() {
 
@@ -47,12 +47,10 @@ class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>
         updateList(newList)
     }
 
-    fun remove() {
-        updateList(ArrayList())
-    }
+    fun remove() = updateList(ArrayList())
 
     private fun updateList(newList: List<VideoMeta>) {
-        val callback = ListDiffCallback(this.list, newList)
+        val callback = VideoMetaDiffCallback(this.list, newList)
         val diffResult = DiffUtil.calculateDiff(callback)
         this.list.clear()
         this.list.addAll(newList)

@@ -7,9 +7,9 @@
             android:title="@string/home"/>
 
     <item
-            android:id="@+id/hotFragment"
-            android:icon="@drawable/ic_hot"
-            android:title="@string/hot"/>
+            android:id="@+id/historyFragment"
+            android:icon="@drawable/ic_history"
+            android:title="@string/history"/>
 
     <item
             android:id="@+id/libraryFragment"

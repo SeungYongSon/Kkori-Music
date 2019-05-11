@@ -6,7 +6,7 @@
               android:label="HomeFragment"/>
     <fragment android:id="@+id/searchFragment" android:name="com.tails.presentation.ui.search.SearchFragment"
               android:label="SearchFragment"/>
-    <fragment android:id="@+id/hotFragment" android:name="com.tails.presentation.ui.hot.HotFragment"
+    <fragment android:id="@+id/historyFragment" android:name="com.tails.presentation.ui.history.HistoryFragment"
               android:label="HotFragment"/>
     <fragment android:id="@+id/libraryFragment" android:name="com.tails.presentation.ui.library.LibraryFragment"
               android:label="LibraryFragment"/>
