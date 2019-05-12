@@ -19,7 +19,7 @@ class YouTubeSearcher(private val searchComplete: SearchComplete) : AsyncTask<St
 
     private var searchList: YouTube.Search.List =
         youtube.search().list(SearchConfig.YOUTUBE_SEARCH_LIST_PART).let {
-            it.key = SearchConfig.YOUTUBE_API
+            it.key = YOUTUBE_API
             it.type = SearchConfig.YOUTUBE_SEARCH_LIST_TYPE
             it.maxResults = SearchConfig.YOUTUBE_MAX_RESULTS
             it.fields = SearchConfig.YOUTUBE_SEARCH_LIST_FIELDS

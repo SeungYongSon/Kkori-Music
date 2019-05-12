@@ -261,3 +261,4 @@ cmake-build-*/
 .idea/runConfigurations.xml
 
 data/src/main/java/com/tails/data/remote/search/SearchConfig.kt
+data/src/main/java/com/tails/data/remote/search/YOUTUBE_API.kt
