@@ -12,7 +12,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.bumptech.glide.Glide
-import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.R
 import com.tails.presentation.streaming.service.RealTimeOperationService
 import androidx.media.app.NotificationCompat as MediaNotificationCompat

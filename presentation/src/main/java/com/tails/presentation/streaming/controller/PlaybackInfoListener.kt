@@ -1,7 +1,7 @@
 package com.tails.presentation.streaming.controller
 
 import androidx.annotation.IntDef
-import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entity.VideoMeta
 
 interface PlaybackInfoListener {
 

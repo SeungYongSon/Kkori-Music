@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.AsyncTask
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.SeekBar
@@ -13,7 +14,7 @@ import androidx.transition.Slide
 import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.streaming.controller.PlaybackInfoListener
@@ -59,13 +60,23 @@ class PlayerFragment : BaseFragment(),
 
                             (activity as MainActivity).window.apply {
                                 statusBarColor = statusColor
-                                //navigationBarColor = statusColor
                                 if (isLight) setSystemBarTheme(decorView, true)
                                 else setSystemBarTheme(decorView, false)
                             }
+
+                            resultList?.setPadding(
+                                0,
+                                0,
+                                0,
+                                TypedValue.applyDimension(
+                                    TypedValue.COMPLEX_UNIT_DIP,
+                                    56f,
+                                    resources.displayMetrics
+                                ).toInt()
+                            )
                         }
                         BottomSheetBehavior.STATE_COLLAPSED -> {
-                            collapsePlayer()
+                            if (resultList == null) collapsePlayer()
 
                             if (toolbar_expand.visibility == View.VISIBLE) expandToolbarToggle()
                             if (toolbar_collapse.visibility == View.GONE) collapseToolbarToggle()
@@ -74,9 +85,20 @@ class PlayerFragment : BaseFragment(),
                                 statusBarColor = Color.argb(255, 250, 250, 250)
                                 setSystemBarTheme(decorView, false)
                             }
+
+                            resultList?.setPadding(
+                                0,
+                                0,
+                                0,
+                                TypedValue.applyDimension(
+                                    TypedValue.COMPLEX_UNIT_DIP,
+                                    56f,
+                                    resources.displayMetrics
+                                ).toInt()
+                            )
                         }
                         BottomSheetBehavior.STATE_HIDDEN -> {
-                            collapsePlayer()
+                            if (resultList == null) collapsePlayer()
 
                             if (toolbar_expand.visibility == View.VISIBLE) expandToolbarToggle()
                             if (toolbar_collapse.visibility == View.GONE) collapseToolbarToggle()
@@ -86,6 +108,7 @@ class PlayerFragment : BaseFragment(),
                                 setSystemBarTheme(decorView, false)
                             }
                             MusicStreamingController.controlRequest("release")
+                            resultList?.setPadding(0, 0, 0, 0)
                         }
                     }
                 }
@@ -109,7 +132,6 @@ class PlayerFragment : BaseFragment(),
         toolbar_collapse.setOnClickListener(this)
 
         back_click_block.setOnClickListener(this)
-
         music_seek.setOnSeekBarChangeListener(this)
     }
 

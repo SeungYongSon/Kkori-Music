@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -19,12 +18,14 @@ import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.streaming.receiver.MusicControlReceiver
 import com.tails.presentation.ui.player.PlayerFragment
+import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : DaggerAppCompatActivity() {
 
     lateinit var playerBehavior: BottomSheetBehavior<View?>
     lateinit var searchView: SearchView
+    lateinit var searchItem: MenuItem
 
     private val broadcastReceiver = MusicControlReceiver()
     private var isSearchBack = false
@@ -59,7 +60,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.search, menu)
 
-        val searchItem = menu.findItem(R.id.searchFragment)
+        searchItem = menu.findItem(R.id.searchFragment)
         searchView = searchItem.actionView as SearchView
 
         searchView.queryHint = "검색"
@@ -87,15 +88,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if(playerBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+        if (playerBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
             playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         else {
-            if(!isSearchBack) {
+            if (!isSearchBack) {
                 if (MusicStreamingController.isPlaying ||
                     MusicStreamingController.isPreparing
                 ) moveTaskToBack(true)
                 else finishAndRemoveTask()
-            } else{
+            } else {
                 isSearchBack = false
                 super.onBackPressed()
             }
@@ -119,14 +120,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun collapsePlayer() {
-        bottomNavigationViewBehavior.isHideable = false
-        bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        if (!searchItem.isActionViewExpanded) {
+            bottomNavigationViewBehavior.isHideable = false
+            bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
         appBarLayout.setExpanded(true, true)
     }
 
     fun expandPlayer() {
-        bottomNavigationViewBehavior.isHideable = true
-        bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        if (!searchItem.isActionViewExpanded) {
+            bottomNavigationViewBehavior.isHideable = true
+            bottomNavigationViewBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
         appBarLayout.setExpanded(false, true)
     }
 }

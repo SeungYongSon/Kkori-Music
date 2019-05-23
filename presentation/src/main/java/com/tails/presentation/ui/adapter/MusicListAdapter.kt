@@ -5,44 +5,68 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.ui.adapter.diff.VideoMetaDiffCallback
+import kotlinx.android.synthetic.main.item_music_list.view.*
 
 class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>() {
 
-    var list = ArrayList<VideoMeta>()
+    private val list = ArrayList<VideoMeta>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_music_list, parent, false)
+        val view =
+            if (viewType == 1) LayoutInflater.from(parent.context).inflate(R.layout.item_music_list, parent, false)
+            else LayoutInflater.from(parent.context).inflate(R.layout.item_music_loading_list, parent, false)
+
         return SearchViewHolder(view)
     }
+
+    override fun getItemViewType(position: Int): Int =
+        if (!list[position].channelId.isNullOrEmpty()) 1 else 0
 
     override fun getItemCount(): Int = list.size
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
-        Glide.with(holder.itemView).load(list[position].getThumbUrl()).into(holder.image)
-        holder.title.text = list[position].title
-        holder.uploader.text = list[position].author
-        holder.itemView.setOnClickListener {
-            if (!MusicStreamingController.isPreparing)
-                MusicStreamingController.prepare(list[position], holder.itemView.context)
-            else
-                Toast.makeText(holder.itemView.context, "로딩중...", Toast.LENGTH_SHORT).show()
+        if (getItemViewType(position) == 1) {
+            Glide.with(holder.itemView).load(list[position].getThumbUrl()).into(holder.itemView.image)
+            holder.itemView.title.text = list[position].title
+            holder.itemView.uploader.text = list[position].author
+            holder.itemView.setOnClickListener {
+                if (!MusicStreamingController.isPreparing)
+                    MusicStreamingController.prepare(list[position], holder.itemView.context)
+                else
+                    Toast.makeText(holder.itemView.context, "로딩중...", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     fun add(videoMeta: VideoMeta) {
         val newList = ArrayList<VideoMeta>().apply {
             addAll(this@MusicListAdapter.list)
-            add(videoMeta)
+            if (size - 1 > -1) add(size - 1, videoMeta)
+            else add(videoMeta)
+        }
+        updateList(newList)
+    }
+
+    fun loading() {
+        val newList = ArrayList<VideoMeta>().apply {
+            addAll(this@MusicListAdapter.list)
+            add(VideoMeta())
+        }
+        updateList(newList)
+    }
+
+    fun removeLoading() {
+        val newList = ArrayList<VideoMeta>().apply {
+            addAll(this@MusicListAdapter.list)
+            removeAt(size - 1)
         }
         updateList(newList)
     }
@@ -57,9 +81,5 @@ class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>
         Handler(Looper.getMainLooper()).post { diffResult.dispatchUpdatesTo(this@MusicListAdapter) }
     }
 
-    inner class SearchViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val image: ImageView = itemView.findViewById(R.id.image)
-        val title: TextView = itemView.findViewById(R.id.title)
-        val uploader: TextView = itemView.findViewById(R.id.uploader)
-    }
+    inner class SearchViewHolder(view: View) : RecyclerView.ViewHolder(view)
 }

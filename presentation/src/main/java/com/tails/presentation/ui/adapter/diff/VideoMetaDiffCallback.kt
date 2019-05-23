@@ -1,7 +1,7 @@
 package com.tails.presentation.ui.adapter.diff
 
 import androidx.recyclerview.widget.DiffUtil
-import com.tails.domain.entities.VideoMeta
+import com.tails.domain.entity.VideoMeta
 
 
 class VideoMetaDiffCallback(private val oldList: List<VideoMeta>, private val newList: List<VideoMeta>) :

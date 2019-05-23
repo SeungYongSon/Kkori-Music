@@ -33,13 +33,14 @@
         app:navGraph="@navigation/kkori_nav"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-    <fragment android:name="com.tails.presentation.ui.base.EmptyFragment"
-              android:id="@+id/player_fragment"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              app:behavior_hideable="true"
-              app:behavior_peekHeight="112dp"
-              app:layout_behavior="@string/bottom_sheet_behavior"/>
+    <fragment
+        android:name="com.tails.presentation.ui.base.EmptyFragment"
+        android:id="@+id/player_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:behavior_hideable="true"
+        app:behavior_peekHeight="112dp"
+        app:layout_behavior="@string/bottom_sheet_behavior"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:layout_width="match_parent"
@@ -50,6 +51,5 @@
         app:menu="@menu/navigation"
         app:behavior_hideable="false"
         app:layout_behavior="@string/bottom_sheet_behavior"
-        app:behavior_peekHeight="56dp"
         android:id="@+id/bottomNavigationView"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

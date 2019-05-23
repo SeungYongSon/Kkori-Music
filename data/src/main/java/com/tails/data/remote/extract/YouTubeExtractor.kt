@@ -8,16 +8,17 @@ import android.util.Log
 import android.util.SparseArray
 import com.evgenii.jsevaluator.JsEvaluator
 import com.evgenii.jsevaluator.interfaces.JsCallback
-import com.tails.data.remote.VideoMetaParser
-import com.tails.domain.entities.Format
-import com.tails.domain.entities.VideoMeta
-import com.tails.domain.entities.YtFile
+import com.tails.domain.entity.Format
+import com.tails.domain.entity.VideoMeta
+import com.tails.domain.entity.YtFile
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.*
 import java.lang.ref.WeakReference
 import java.net.URLDecoder
+import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.regex.Matcher
@@ -56,6 +57,12 @@ class YouTubeExtractor(private val extractComplete: ExtractComplete, context: Co
         private val patDecryptionJsFile = Pattern.compile("jsbin\\\\/(player(_ias)?-(.+?).js)")
         private val patSignatureDecFunction =
             Pattern.compile("([\\w$]+)\\s*=\\s*function\\(([\\w$]+)\\).\\s*\\2=\\s*\\2\\.split\\(\"\"\\)\\s*;")
+
+        private val patTitle = Pattern.compile("title=(.*?)(&|\\z)")
+        private val patAuthor = Pattern.compile("author=(.+?)(&|\\z)")
+        private val patChannelId = Pattern.compile("ucid=(.+?)(&|\\z)")
+        private val patLength = Pattern.compile("length_seconds=(\\d+?)(&|\\z)")
+        private val patViewCount = Pattern.compile("view_count=(\\d+?)(&|\\z)")
 
         private const val YOUTUBE_ITAG_251 = 251    // webm - stereo, 48 KHz 160 Kbps (opus)
         private const val YOUTUBE_ITAG_250 = 250    // webm - stereo, 48 KHz 64 Kbps (opus)
@@ -186,9 +193,8 @@ class YouTubeExtractor(private val extractComplete: ExtractComplete, context: Co
         this.execute(videoMeta)
     }
 
-    override fun onPostExecute(result: YtFile) {
+    override fun onPostExecute(result: YtFile) =
         extractComplete.onExtractComplete(result, videoMeta)
-    }
 
     override fun doInBackground(vararg params: VideoMeta): YtFile? {
         videoMeta = params[0]
@@ -445,9 +451,9 @@ class YouTubeExtractor(private val extractComplete: ExtractComplete, context: Co
             .build()
 
         val resBody = client.newCall(reqVideoInfo).execute().body()!!
-        var streamMap = VideoMetaParser.resBodyToStream(resBody)
+        var streamMap = resBodyToStream(resBody)
 
-        videoMeta = VideoMetaParser.parseVideoMeta(streamMap, videoID)
+        videoMeta = parseVideoMeta(streamMap, videoID)
 
         var mat: Matcher
         var curJsFileName: String? = null
@@ -917,6 +923,55 @@ class YouTubeExtractor(private val extractComplete: ExtractComplete, context: Co
                 }
             }
         }
+    }
+
+    @Throws(UnsupportedEncodingException::class)
+    private fun parseVideoMeta(getVideoInfo: String, videoID: String): VideoMeta {
+        var isLiveStream = false
+        var title = ""
+        var author = ""
+        var channelId = ""
+        var viewCount: Long = 0
+        var length: Long = 0
+        var mat = patTitle.matcher(getVideoInfo)
+
+        if (mat.find()) {
+            title = URLDecoder.decode(mat.group(1), "UTF-8")
+        }
+
+        mat = patHlsvp.matcher(getVideoInfo)
+        if (mat.find()) {
+            isLiveStream = true
+        }
+
+        mat = patAuthor.matcher(getVideoInfo)
+        if (mat.find()) {
+            author = URLDecoder.decode(mat.group(1), "UTF-8")
+        }
+        mat = patChannelId.matcher(getVideoInfo)
+        if (mat.find()) {
+            channelId = mat.group(1)
+        }
+        mat = patLength.matcher(getVideoInfo)
+        if (mat.find()) {
+            length = java.lang.Long.parseLong(mat.group(1))
+        }
+        mat = patViewCount.matcher(getVideoInfo)
+        if (mat.find()) {
+            viewCount = java.lang.Long.parseLong(mat.group(1))
+        }
+
+        return VideoMeta(videoID, title, author, channelId, length, viewCount, isLiveStream, getVideoInfo)
+    }
+
+    private fun resBodyToStream(resBody: ResponseBody): String {
+        val source = resBody.source().apply {
+            request(Long.MAX_VALUE)
+        }
+        val buffer = source.buffer()
+        val charset = Charset.forName("UTF-8")
+
+        return buffer.readString(charset)
     }
 
     private fun getBestStream(ytFiles: SparseArray<YtFile>?): YtFile? {

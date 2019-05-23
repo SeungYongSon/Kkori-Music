@@ -1,32 +1,22 @@
 package com.tails.presentation.ui.adapter.scroll
 
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 
 
 abstract class EndlessRecyclerOnScrollListener : RecyclerView.OnScrollListener() {
 
-    private var mPreviousTotal = 0
-    private var mLoading = true
+    var isFirstLoading = true
 
-    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-        super.onScrolled(recyclerView, dx, dy)
-
-        val visibleItemCount = recyclerView.childCount
-        val totalItemCount = recyclerView.layoutManager!!.itemCount
-        val firstVisibleItem = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-
-        if (mLoading) {
-            if (totalItemCount > mPreviousTotal) {
-                mLoading = false
-                mPreviousTotal = totalItemCount
-            }
-        }
-
-        val visibleThreshold = 5
-        if (!mLoading && totalItemCount - visibleItemCount <= firstVisibleItem + visibleThreshold) {
-            onLoadMore()
-            mLoading = true
+    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+        if (!recyclerView.canScrollVertically(-1)) {
+            Log.e("scroll state", "Top of list")
+        } else if (!recyclerView.canScrollVertically(1)) {
+            Log.e("scroll state", "End of list")
+            if(!isFirstLoading) onLoadMore()
+            else isFirstLoading = false
+        } else {
+            Log.e("scroll state", "idle")
         }
     }
 

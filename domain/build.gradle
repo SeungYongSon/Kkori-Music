@@ -29,3 +29,7 @@ compileTestKotlin {
         jvmTarget = "1.8"
     }
 }
+
+dependencies {
+    implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxVersion"
+}

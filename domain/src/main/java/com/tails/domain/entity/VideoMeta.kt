@@ -1,4 +1,4 @@
-package com.tails.domain.entities
+package com.tails.domain.entity
 
 data class VideoMeta(
     val videoId: String?,
@@ -10,6 +10,9 @@ data class VideoMeta(
     val isLiveStream: Boolean,
     val infoStream: String
 ) {
+
+    constructor() : this("", "", "", "", 0, 0, false, "")
+
     companion object {
         private const val IMAGE_BASE_URL = "https://i.ytimg.com/vi/"
     }
@@ -59,12 +62,12 @@ data class VideoMeta(
     }
 
     override fun toString(): String = "VideoMeta{" +
-            "videoId='" + videoId + '\''.toString() +
-            ", title='" + title + '\''.toString() +
-            ", author='" + author + '\''.toString() +
-            ", channelId='" + channelId + '\''.toString() +
-            ", videoLength=" + videoLength +
-            ", viewCount=" + viewCount +
-            ", isLiveStream=" + isLiveStream +
-            '}'.toString()
+        "videoId='" + videoId + '\''.toString() +
+        ", title='" + title + '\''.toString() +
+        ", author='" + author + '\''.toString() +
+        ", channelId='" + channelId + '\''.toString() +
+        ", videoLength=" + videoLength +
+        ", viewCount=" + viewCount +
+        ", isLiveStream=" + isLiveStream +
+        '}'.toString()
 }

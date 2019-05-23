@@ -1,4 +1,4 @@
-package com.tails.domain.entities
+package com.tails.domain.entity
 
 data class YtFile(
     var format : Format?,

@@ -10,12 +10,13 @@ import android.util.Log
 import androidx.work.*
 import com.tails.data.remote.extract.ExtractComplete
 import com.tails.data.remote.extract.YouTubeExtractor
-import com.tails.domain.entities.VideoMeta
-import com.tails.domain.entities.YtFile
+import com.tails.domain.entity.VideoMeta
+import com.tails.domain.entity.YtFile
 import com.tails.presentation.streaming.notification.MusicControlNotification
 import java.lang.IllegalStateException
+import javax.inject.Inject
 
-class MusicStreamingController(context: Context, workerParameters: WorkerParameters) :
+class MusicStreamingController @Inject constructor(context: Context, workerParameters: WorkerParameters) :
     Worker(context, workerParameters),
     PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 

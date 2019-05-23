@@ -1,4 +1,4 @@
-package com.tails.domain.entities
+package com.tails.domain.entity
 
 class Format{
     enum class VCodec {
