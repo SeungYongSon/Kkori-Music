@@ -27,4 +27,8 @@ YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입�
 * Dagger2
 * RxJava
 * Android Architecture Components's Lifecycle
+* MediaPlayer
 
+### Things to be used
+
+* Android Architecture Components's Room
