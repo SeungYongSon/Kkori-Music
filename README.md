@@ -14,17 +14,17 @@ YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입�
 
 **"엥? 이거 완전 YouTube Music 아니야?"** 할 정도의 퀼리티  
 
-### Current used
+### Things in use
 
 * Kotlin
 * Android X
 * Android Jetpack's navigation component
 * Android Jetpack's WorkManager
 * YouTube Data API v3
-
-### Things to be used
-
-* Android Architecture Components
-* Clean Architecture + (MVVM or MVP)
+* Clean Architecture
+* MVVM Pattern
+* Data Binding
 * Dagger2
 * RxJava
+* Android Architecture Components's Lifecycle
+
