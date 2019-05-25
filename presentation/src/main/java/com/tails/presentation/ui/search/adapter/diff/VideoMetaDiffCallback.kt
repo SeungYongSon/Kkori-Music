@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter.diff
+package com.tails.presentation.ui.search.adapter.diff
 
 import androidx.recyclerview.widget.DiffUtil
 import com.tails.domain.entity.VideoMeta

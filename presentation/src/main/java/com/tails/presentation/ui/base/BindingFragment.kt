@@ -4,23 +4,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import dagger.android.support.DaggerFragment
 import io.reactivex.disposables.CompositeDisposable
 
-abstract class BaseFragment : DaggerFragment() {
+abstract class BindingFragment<T : ViewDataBinding> : DaggerFragment() {
 
     lateinit var rootView: View
+    lateinit var binding: T
     abstract val layoutId: Int
-
-    val compositeDisposable = CompositeDisposable()
 
     companion object {
         var resultList: RecyclerView? = null
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        rootView = inflater.inflate(layoutId, container, false)
+        binding = DataBindingUtil.inflate(inflater, layoutId, container, false)
+        rootView = binding.root
+
         return rootView
     }
 }

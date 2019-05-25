@@ -1,11 +1,13 @@
 package com.tails.data.remote.search
 
+import android.util.Log
 import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.GenericJson
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
-import com.google.api.services.youtube.model.SearchListResponse
 import io.reactivex.Single
 import java.util.*
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 class YouTubeSearcher @Inject constructor() {
@@ -22,7 +24,7 @@ class YouTubeSearcher @Inject constructor() {
                 it.type = SearchConfig.YOUTUBE_SEARCH_LIST_TYPE
                 it.maxResults = SearchConfig.YOUTUBE_MAX_RESULTS
                 it.fields = SearchConfig.YOUTUBE_SEARCH_LIST_FIELDS
-                it.order = SearchConfig.YOUTUBE_SEARCH_LIST_ORDERS
+//                it.order = SearchConfig.YOUTUBE_SEARCH_LIST_ORDERS
                 it.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
             }
     }
@@ -30,25 +32,41 @@ class YouTubeSearcher @Inject constructor() {
     private lateinit var keywords: String
     private lateinit var nextPageToken: String
 
-    fun search(keywords: String): Single<SearchListResponse> {
+    fun search(keywords: String): Single<GenericJson> {
         this.keywords = keywords
         this.nextPageToken = ""
         return searchVideos()
     }
 
-    fun search(keywords: String, token: String): Single<SearchListResponse> {
+    fun search(keywords: String, token: String): Single<GenericJson> {
         this.keywords = keywords
         this.nextPageToken = token
         return searchVideos()
     }
 
-    private fun searchVideos(): Single<SearchListResponse> {
+    private fun searchVideos(): Single<GenericJson> {
         searchList.q = keywords
+
+        val pattern = Pattern.compile(SearchConfig.YOUTUBE_REGEX)
+        val matcher = pattern.matcher(keywords)
 
         if (nextPageToken.isNotEmpty()) {
             searchList.pageToken = nextPageToken
         }
 
-        return Single.fromCallable { searchList.execute() }
+        return if (matcher.find()) {
+            Log.e("asdf", matcher.group(1))
+
+            val singleVideo = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_PART).apply {
+                key = YOUTUBE_API
+                fields = SearchConfig.YOUTUBE_VIDEO_FIELDS
+                set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
+                id = matcher.group(1)
+            }
+
+            Single.fromCallable { singleVideo.execute() }
+        } else {
+            Single.fromCallable { searchList.execute() }
+        }
     }
 }

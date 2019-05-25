@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter.scroll
+package com.tails.presentation.ui.search.adapter.scroll
 
 import android.util.Log
 import androidx.recyclerview.widget.RecyclerView

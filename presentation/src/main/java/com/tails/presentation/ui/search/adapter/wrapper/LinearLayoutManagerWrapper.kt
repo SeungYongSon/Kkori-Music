@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter.wrapper
+package com.tails.presentation.ui.search.adapter.wrapper
 
 import android.content.Context
 import androidx.recyclerview.widget.LinearLayoutManager

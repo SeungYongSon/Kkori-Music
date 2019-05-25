@@ -1,5 +1,6 @@
 package com.tails.data.source.search
 
+import com.google.api.client.json.GenericJson
 import com.google.api.services.youtube.model.SearchListResponse
 import com.tails.data.remote.parse.VideoMetaParser
 import com.tails.data.remote.search.YouTubeSearcher
@@ -14,13 +15,14 @@ class SearchRemoteDataSource @Inject constructor(
     private val videoMetaParser: VideoMetaParser
 ) {
 
-    fun searchList(keyword: String): Single<SearchListResponse> =
+    fun searchList(keyword: String): Single<GenericJson> =
         youTubeSearcher.search(keyword)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 
     fun searchList(keyword: String, token: String): Single<SearchListResponse> =
         youTubeSearcher.search(keyword, token)
+            .map { it as SearchListResponse }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
 

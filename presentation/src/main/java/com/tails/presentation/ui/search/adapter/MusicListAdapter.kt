@@ -1,4 +1,4 @@
-package com.tails.presentation.ui.adapter
+package com.tails.presentation.ui.search.adapter
 
 import android.os.Handler
 import android.os.Looper
@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide
 import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.R
 import com.tails.presentation.streaming.controller.MusicStreamingController
-import com.tails.presentation.ui.adapter.diff.VideoMetaDiffCallback
+import com.tails.presentation.ui.search.adapter.diff.VideoMetaDiffCallback
 import kotlinx.android.synthetic.main.item_music_list.view.*
 
 class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>() {

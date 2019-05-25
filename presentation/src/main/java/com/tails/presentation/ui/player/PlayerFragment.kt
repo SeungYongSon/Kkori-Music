@@ -16,14 +16,15 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.R
+import com.tails.presentation.databinding.FragmentPlayerBinding
 import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.streaming.controller.PlaybackInfoListener
 import com.tails.presentation.ui.MainActivity
-import com.tails.presentation.ui.base.BaseFragment
+import com.tails.presentation.ui.base.BindingFragment
 import kotlinx.android.synthetic.main.fragment_player.*
 import mkaflowski.mediastylepalette.MediaNotificationProcessor
 
-class PlayerFragment : BaseFragment(),
+class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
     View.OnClickListener, PlaybackInfoListener, SeekBar.OnSeekBarChangeListener {
 
     private var userIsSeeking = false
