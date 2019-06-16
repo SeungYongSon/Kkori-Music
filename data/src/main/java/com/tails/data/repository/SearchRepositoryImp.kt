@@ -4,6 +4,8 @@ import com.google.api.services.youtube.model.SearchListResponse
 import com.google.api.services.youtube.model.VideoListResponse
 import com.tails.data.model.SearchResultEntity
 import com.tails.data.model.SearchResultMapper
+import com.tails.data.model.VideoMetaEntity
+import com.tails.data.model.VideoMetaMapper
 import com.tails.data.remote.search.SearchConfig
 import com.tails.data.source.search.SearchRemoteDataSource
 import com.tails.domain.entity.SearchResult
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 class SearchRepositoryImp @Inject constructor(
     private val searchRemoteDataSource: SearchRemoteDataSource,
-    private val searchResultMapper: SearchResultMapper
+    private val searchResultMapper: SearchResultMapper,
+    private val videoMetaMapper: VideoMetaMapper
 ) : SearchRepository {
 
     override fun searchList(keyword: String): Single<SearchResult> =
@@ -66,7 +69,7 @@ class SearchRepositoryImp @Inject constructor(
         searchRemoteDataSource.searchResultParse(videoId)
             .map {
                 val info = resBodyToStream(it.body()!!)
-                parseVideoMeta(info, videoId)
+                videoMetaMapper.mapToDomain(parseVideoMeta(info, videoId))
             }
 
     companion object {
@@ -79,7 +82,7 @@ class SearchRepositoryImp @Inject constructor(
     }
 
     @Throws(UnsupportedEncodingException::class)
-    private fun parseVideoMeta(getVideoInfo: String, videoID: String): VideoMeta {
+    private fun parseVideoMeta(getVideoInfo: String, videoID: String): VideoMetaEntity {
         var isLiveStream = false
         var title = ""
         var author = ""
@@ -114,7 +117,7 @@ class SearchRepositoryImp @Inject constructor(
             viewCount = java.lang.Long.parseLong(mat.group(1))
         }
 
-        return VideoMeta(videoID, title, author, channelId, length, viewCount, isLiveStream, getVideoInfo)
+        return VideoMetaEntity(videoID, title, author, channelId, length, viewCount, isLiveStream, getVideoInfo)
     }
 
     private fun resBodyToStream(resBody: ResponseBody): String {

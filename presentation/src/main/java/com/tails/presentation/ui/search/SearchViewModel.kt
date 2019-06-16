@@ -81,8 +81,8 @@ class SearchViewModel(
                     nextPageToken = ""
                     isLoading = true
                     compositeDisposable.clear()
-                    search(s)
                     startSearchSingleLiveEvent.call()
+                    search(s)
                 }
             }
             return false

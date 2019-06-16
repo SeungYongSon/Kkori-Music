@@ -30,6 +30,7 @@ android {
     configurations {
         all*.exclude group: 'com.google.guava', module: 'listenablefuture'
     }
+    kapt { generateStubs = true }
 }
 
 dependencies {
@@ -48,6 +49,8 @@ dependencies {
     implementation('com.google.apis:google-api-services-youtube:v3-rev206-1.25.0') {
         exclude group: 'org.apache.httpcomponents'
     }
+
+    implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
 
     implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofitVersion"
     implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofitVersion"

@@ -5,17 +5,17 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.tails.domain.entity.VideoMeta
+import com.tails.presentation.KkoriApplication
 import com.tails.presentation.R
-import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.ui.search.adapter.diff.VideoMetaDiffCallback
 import kotlinx.android.synthetic.main.item_music_list.view.*
 
-class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>() {
+class MusicListAdapter(private val kkoriApplication: KkoriApplication) :
+    RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>() {
 
     private val list = ArrayList<VideoMeta>()
 
@@ -28,7 +28,7 @@ class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>
     }
 
     override fun getItemViewType(position: Int): Int =
-        if (!list[position].channelId.isNullOrEmpty()) 1 else 0
+        if (list[position].channelId.isNotEmpty()) 1 else 0
 
     override fun getItemCount(): Int = list.size
 
@@ -38,10 +38,7 @@ class MusicListAdapter : RecyclerView.Adapter<MusicListAdapter.SearchViewHolder>
             holder.itemView.title.text = list[position].title
             holder.itemView.uploader.text = list[position].author
             holder.itemView.setOnClickListener {
-                if (!MusicStreamingController.isPreparing)
-                    MusicStreamingController.prepare(list[position], holder.itemView.context)
-                else
-                    Toast.makeText(holder.itemView.context, "로딩중...", Toast.LENGTH_SHORT).show()
+                kkoriApplication.prepare(list[position])
             }
         }
     }

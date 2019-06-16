@@ -27,13 +27,13 @@ import mkaflowski.mediastylepalette.MediaNotificationProcessor
 class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
     View.OnClickListener, PlaybackInfoListener, SeekBar.OnSeekBarChangeListener {
 
+    override val layoutId: Int
+        get() = R.layout.fragment_player
+
     private var userIsSeeking = false
     private var isLight = false
     private var statusColor = 0
     private var userSelectedPosition = 0
-
-    override val layoutId: Int
-        get() = R.layout.fragment_player
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +42,7 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         MusicStreamingController.playbackInfoListener = this@PlayerFragment
         initializeUI()
     }

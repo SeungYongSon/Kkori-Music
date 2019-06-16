@@ -1,6 +1,7 @@
 package com.tails.presentation.di.module
 
 import com.tails.data.repository.SearchRepositoryImp
+import com.tails.domain.repository.SearchRepository
 import com.tails.domain.usecase.search.SearchResultParseUseCase
 import com.tails.domain.usecase.search.SearchUseCase
 import com.tails.presentation.ui.search.SearchViewModelFactory
@@ -11,6 +12,10 @@ import javax.inject.Singleton
 
 @Module
 class SearchModule {
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(searchRepository: SearchRepositoryImp): SearchRepository = searchRepository
 
     @Provides
     @Singleton

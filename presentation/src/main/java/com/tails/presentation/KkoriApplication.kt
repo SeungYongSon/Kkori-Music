@@ -3,12 +3,17 @@ package com.tails.presentation
 import android.app.Activity
 import android.util.Log
 import androidx.fragment.app.Fragment
+import androidx.work.Data
+import com.tails.domain.entity.VideoMeta
+import com.tails.domain.usecase.extract.ExtractStreamingUrlUseCase
 import com.tails.presentation.di.DaggerAppComponent
+import com.tails.presentation.streaming.controller.MusicStreamingController
 import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector
 import dagger.android.support.HasSupportFragmentInjector
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.plugins.RxJavaPlugins
 import java.io.IOException
@@ -22,6 +27,12 @@ class KkoriApplication : DaggerApplication(), HasActivityInjector, HasSupportFra
 
     @Inject
     lateinit var fragmentInjector: DispatchingAndroidInjector<Fragment>
+
+    @Inject
+    lateinit var extractStreamingUrlUseCase: ExtractStreamingUrlUseCase
+
+    @Inject
+    lateinit var compositeDisposable: CompositeDisposable
 
     override fun applicationInjector(): AndroidInjector<out DaggerApplication> =
         DaggerAppComponent.builder().application(this).build()
@@ -60,5 +71,26 @@ class KkoriApplication : DaggerApplication(), HasActivityInjector, HasSupportFra
             }
             Log.w("not sure what to do", error)
         }
+    }
+
+    private fun readyToPlay(videoMeta: VideoMeta, value: String) {
+        MusicStreamingController.videoMeta = videoMeta
+        MusicStreamingController.workManager.enqueue(
+            MusicStreamingController.musicControlBuilder.setInputData(
+                Data.Builder()
+                    .putString("control", "load")
+                    .putString("streamUrl", value)
+                    .build()
+            ).build()
+        )
+    }
+
+    fun prepare(videoMeta: VideoMeta) {
+        compositeDisposable.add(
+            extractStreamingUrlUseCase.createObservable(ExtractStreamingUrlUseCase.Params(videoMeta.videoId))
+                .subscribe({
+                    readyToPlay(videoMeta, it)
+                }, { Log.e("asdf", it.message) })
+        )
     }
 }

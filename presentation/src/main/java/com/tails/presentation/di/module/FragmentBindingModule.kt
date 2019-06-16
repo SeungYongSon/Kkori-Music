@@ -1,6 +1,6 @@
 package com.tails.presentation.di.module
 
-import com.tails.presentation.di.qualifier.PerFragment
+import com.tails.presentation.di.scope.PerFragment
 import com.tails.presentation.ui.history.HistoryFragment
 import com.tails.presentation.ui.home.HomeFragment
 import com.tails.presentation.ui.library.LibraryFragment

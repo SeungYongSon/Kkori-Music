@@ -92,9 +92,8 @@ class MainActivity : DaggerAppCompatActivity() {
             playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         else {
             if (!isSearchBack) {
-                if (MusicStreamingController.isPlaying ||
-                    MusicStreamingController.isPreparing
-                ) moveTaskToBack(true)
+                if (MusicStreamingController.isPlaying)
+                    moveTaskToBack(true)
                 else finishAndRemoveTask()
             } else {
                 isSearchBack = false

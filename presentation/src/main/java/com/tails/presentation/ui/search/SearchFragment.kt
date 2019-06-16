@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.tails.presentation.KkoriApplication
 import com.tails.presentation.R
 import com.tails.presentation.databinding.FragmentSearchBinding
 import com.tails.presentation.ui.MainActivity
@@ -25,10 +26,12 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
     @Inject
     lateinit var searchViewModelFactory: SearchViewModelFactory
 
-    private val musicListAdapter = MusicListAdapter()
+    private lateinit var musicListAdapter: MusicListAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        musicListAdapter = MusicListAdapter((activity as MainActivity).application as KkoriApplication)
 
         binding.vm = ViewModelProviders.of(this, searchViewModelFactory)[SearchViewModel::class.java]
 
