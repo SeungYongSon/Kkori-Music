@@ -2,7 +2,6 @@ package com.tails.presentation
 
 import android.app.Activity
 import android.util.Log
-import androidx.fragment.app.Fragment
 import androidx.work.Data
 import com.tails.domain.entity.VideoMeta
 import com.tails.domain.usecase.extract.ExtractStreamingUrlUseCase
@@ -12,7 +11,6 @@ import dagger.android.AndroidInjector
 import dagger.android.DaggerApplication
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasActivityInjector
-import dagger.android.support.HasSupportFragmentInjector
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.exceptions.UndeliverableException
 import io.reactivex.plugins.RxJavaPlugins
@@ -20,13 +18,10 @@ import java.io.IOException
 import java.net.SocketException
 import javax.inject.Inject
 
-class KkoriApplication : DaggerApplication(), HasActivityInjector, HasSupportFragmentInjector {
+class KkoriApplication : DaggerApplication(), HasActivityInjector {
 
     @Inject
     lateinit var activityInjector: DispatchingAndroidInjector<Activity>
-
-    @Inject
-    lateinit var fragmentInjector: DispatchingAndroidInjector<Fragment>
 
     @Inject
     lateinit var extractStreamingUrlUseCase: ExtractStreamingUrlUseCase
@@ -38,8 +33,6 @@ class KkoriApplication : DaggerApplication(), HasActivityInjector, HasSupportFra
         DaggerAppComponent.builder().application(this).build()
 
     override fun activityInjector(): DispatchingAndroidInjector<Activity> = activityInjector
-
-    override fun supportFragmentInjector(): AndroidInjector<Fragment> = fragmentInjector
 
     override fun onCreate() {
         super.onCreate()

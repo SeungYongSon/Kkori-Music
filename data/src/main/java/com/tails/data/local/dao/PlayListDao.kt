@@ -5,7 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.tails.data.model.PlayListEntity
-import com.tails.data.model.VideoMetaEntity
 
 @Dao
 interface PlayListDao {
