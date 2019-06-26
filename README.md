@@ -7,6 +7,8 @@
 
 ## 📄 README
 
+![스크린샷](img/screenshot.png)
+
 토이 프로젝트이며,  
 YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입니다.
 
