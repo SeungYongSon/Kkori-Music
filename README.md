@@ -7,7 +7,7 @@
 
 ## 📄 README
 
-![스크린샷](img/screenshot.png)
+![screenshot](img/screenshot.png)
 
 토이 프로젝트이며,  
 YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입니다.
@@ -35,6 +35,10 @@ YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입�
 * 플레이어가 접힌 상태에서 키보드 사용시, 키보드 위에 접힌 플레이어가 보이게 하기
 * 재생목록
 * 재생기록
+
+### 🎯 Architecture Approach
+
+![screenshot](img/approach.png)
 
 ### 🚀 Things in use and Things to be used
 
