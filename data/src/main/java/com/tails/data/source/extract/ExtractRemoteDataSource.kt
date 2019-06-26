@@ -1,5 +1,6 @@
 package com.tails.data.source.extract
 
+import android.annotation.SuppressLint
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
@@ -8,6 +9,8 @@ import at.huber.youtubeExtractor.VideoMeta
 import at.huber.youtubeExtractor.YouTubeExtractor
 import at.huber.youtubeExtractor.YtFile
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
 import javax.inject.Inject
 
@@ -25,6 +28,7 @@ class ExtractRemoteDataSource @Inject constructor(val context: Context) {
     private val YOUTUBE_ITAG_36 = 36      // mp4 - stereo, 44.1 KHz 32 Kbps (aac)
     private val YOUTUBE_ITAG_17 = 17      // mp4 - stereo, 44.1 KHz 24 Kbps (aac)
 
+    @SuppressLint("StaticFieldLeak")
     fun extract(videoId: String): Observable<String> {
         val streamUrlSubject = AsyncSubject.create<String>()
 
@@ -38,6 +42,8 @@ class ExtractRemoteDataSource @Inject constructor(val context: Context) {
         }.extract(videoId, true, false)
 
         return streamUrlSubject
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
     private fun getBestStream(ytFiles: SparseArray<YtFile>): YtFile {

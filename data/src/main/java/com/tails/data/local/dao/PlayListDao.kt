@@ -15,9 +15,6 @@ interface PlayListDao {
     @Query(value = "SELECT * FROM playList")
     fun getAll(): List<PlayListEntity>
 
-//    @Query("SELECT * FROM playList where videoMetaEntityList = :playListId")
-//    fun getIdForList(playListId: String): List<VideoMetaEntity>
-
     @Delete
     fun delete(playListEntity: PlayListEntity)
 

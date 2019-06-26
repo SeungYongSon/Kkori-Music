@@ -34,7 +34,7 @@ class MusicListAdapter(private val kkoriApplication: KkoriApplication) :
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
         if (getItemViewType(position) == 1) {
-            Glide.with(holder.itemView).load(list[position].getThumbUrl()).into(holder.itemView.image)
+            Glide.with(holder.itemView).load(list[position].getHqImageUrl()).into(holder.itemView.image)
             holder.itemView.title.text = list[position].title
             holder.itemView.uploader.text = list[position].author
             holder.itemView.setOnClickListener {
@@ -48,6 +48,15 @@ class MusicListAdapter(private val kkoriApplication: KkoriApplication) :
             addAll(this@MusicListAdapter.list)
             if (size - 1 > -1) add(size - 1, videoMeta)
             else add(videoMeta)
+        }
+        updateList(newList)
+    }
+
+    fun add(videoMetaList: List<VideoMeta>) {
+        val newList = ArrayList<VideoMeta>().apply {
+            addAll(this@MusicListAdapter.list)
+            if (size - 1 > -1) addAll(size - 1, videoMetaList)
+            else addAll(videoMetaList)
         }
         updateList(newList)
     }

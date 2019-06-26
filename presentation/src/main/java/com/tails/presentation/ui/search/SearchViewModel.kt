@@ -1,5 +1,6 @@
 package com.tails.presentation.ui.search
 
+import android.util.Log
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.ViewModel
 import com.tails.domain.entity.SearchResult
@@ -21,23 +22,29 @@ class SearchViewModel(
     private var lastSearch = ""
     private var isLoading = false
 
+    private val resultList = ArrayList<VideoMeta>()
+
     val startSearchSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchFailSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchNextPageLoadSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchEndSingleLiveEvent = SingleLiveEvent<Unit>()
-    val parseSuccessSingleLiveEvent = SingleLiveEvent<VideoMeta>()
+    val parseSuccessSingleLiveEvent = SingleLiveEvent<List<VideoMeta>>()
 
     fun search(keyword: String) {
         compositeDisposable.add(
             searchUseCase.createObservable(SearchUseCase.Params(keyword))
-                .subscribe({ searchSuccess(it) }, { searchFail() })
+                .subscribe({ searchSuccess(it) }, {
+                    Log.e("zxcv", it.message)
+                    searchFail() })
         )
     }
 
     fun search(keyword: String, nextPageToken: String) {
         compositeDisposable.add(
             searchUseCase.createObservable(SearchUseCase.Params(keyword, nextPageToken))
-                .subscribe({ searchSuccess(it) }, { searchFail() })
+                .subscribe({ searchSuccess(it) }, {
+                    Log.e("qwer", it.message)
+                    searchFail() })
         )
     }
 
@@ -51,16 +58,21 @@ class SearchViewModel(
                 compositeDisposable.add(
                     searchResultParseUseCase.createObservable(
                         SearchResultParseUseCase.Params(id)
-                    ).subscribe { result, _ ->
-                        if (result != null) parseSuccessSingleLiveEvent.value = result
+                    ).subscribe({ result ->
+                        Log.e("asdf", searchCount.toString())
+                        if (result != null) resultList.add(result)
 
                         searchCount--
 
                         if (searchCount == 0) {
                             isLoading = false
+                            parseSuccessSingleLiveEvent.value = resultList
                             searchEndSingleLiveEvent.call()
+                            resultList.clear()
                         }
-                    })
+                    }, {
+                        Log.e("asdf", it.message)
+                    }))
             }
         } else {
             searchFail()

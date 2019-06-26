@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.tails.presentation.KkoriApplication
 import com.tails.presentation.R
@@ -61,6 +62,7 @@ class SearchFragment : BindingFragment<FragmentSearchBinding>() {
             LinearLayoutManager.VERTICAL,
             false
         )
+        search_list.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
     }
 
     private fun initSingleLiveEvent(vm: SearchViewModel) {

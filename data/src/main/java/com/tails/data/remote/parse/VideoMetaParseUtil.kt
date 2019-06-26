@@ -47,11 +47,11 @@ object VideoMetaParseUtil {
         }
         mat = patLength.matcher(getVideoInfo)
         if (mat.find()) {
-            length = java.lang.Long.parseLong(mat.group(1))
+            length = mat.group(1).toLong()
         }
         mat = patViewCount.matcher(getVideoInfo)
         if (mat.find()) {
-            viewCount = java.lang.Long.parseLong(mat.group(1))
+            viewCount = java.lang.Long.decode(mat.group(1))
         }
 
         return VideoMetaEntity(videoID, title, author, channelId, length, viewCount, isLiveStream, getVideoInfo)

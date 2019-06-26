@@ -2,7 +2,6 @@ package com.tails.presentation
 
 import android.app.Activity
 import android.util.Log
-import androidx.work.Data
 import com.tails.domain.entity.VideoMeta
 import com.tails.domain.usecase.extract.ExtractStreamingUrlUseCase
 import com.tails.presentation.di.DaggerAppComponent
@@ -66,23 +65,13 @@ class KkoriApplication : DaggerApplication(), HasActivityInjector {
         }
     }
 
-    private fun readyToPlay(videoMeta: VideoMeta, value: String) {
-        MusicStreamingController.videoMeta = videoMeta
-        MusicStreamingController.workManager.enqueue(
-            MusicStreamingController.musicControlBuilder.setInputData(
-                Data.Builder()
-                    .putString("control", "load")
-                    .putString("streamUrl", value)
-                    .build()
-            ).build()
-        )
-    }
-
     fun prepare(videoMeta: VideoMeta) {
+        MusicStreamingController.playbackInfoListener.onPrepare(videoMeta)
+        MusicStreamingController.controlReleaseRequest()
         compositeDisposable.add(
             extractStreamingUrlUseCase.createObservable(ExtractStreamingUrlUseCase.Params(videoMeta.videoId))
                 .subscribe({
-                    readyToPlay(videoMeta, it)
+                    MusicStreamingController.controlPrepareRequest(it, videoMeta)
                 }, { Log.e("asdf", it.message) })
         )
     }

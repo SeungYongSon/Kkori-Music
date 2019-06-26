@@ -42,19 +42,19 @@ data class VideoMeta(
         if (videoLength != videoMeta!!.videoLength) return false
         if (viewCount != videoMeta.viewCount) return false
         if (isLiveStream != videoMeta.isLiveStream) return false
-        if (if (videoId != null) videoId != videoMeta.videoId else videoMeta.videoId != null)
+        if (videoId != videoMeta.videoId)
             return false
-        if (if (title != null) title != videoMeta.title else videoMeta.title != null) return false
-        if (if (author != null) author != videoMeta.author else videoMeta.author != null)
+        if (title != videoMeta.title) return false
+        if (author != videoMeta.author)
             return false
-        return if (channelId != null) channelId == videoMeta.channelId else videoMeta.channelId == null
+        return channelId == videoMeta.channelId
     }
 
     override fun hashCode(): Int {
-        var result = videoId?.hashCode() ?: 0
-        result = 31 * result + (title?.hashCode() ?: 0)
-        result = 31 * result + (author?.hashCode() ?: 0)
-        result = 31 * result + (channelId?.hashCode() ?: 0)
+        var result = videoId.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + author.hashCode()
+        result = 31 * result + channelId.hashCode()
         result = 31 * result + (videoLength xor videoLength.ushr(32)).toInt()
         result = 31 * result + (viewCount xor viewCount.ushr(32)).toInt()
         result = 31 * result + if (isLiveStream) 1 else 0

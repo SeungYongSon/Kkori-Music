@@ -185,21 +185,21 @@
             <TextView android:id="@+id/music_time"
                       android:layout_width="0dp"
                       android:layout_height="wrap_content"
-                      android:text=""
+                      android:text="00:00"
                       android:gravity="center"
                       android:layout_weight="1.4"/>
 
             <SeekBar android:id="@+id/music_seek"
                      android:layout_width="0dp"
                      android:layout_height="wrap_content"
-                     android:progress="250"
+                     android:progress="0"
                      android:max="500"
                      android:layout_weight="7.2"/>
 
             <TextView android:id="@+id/music_time_total"
                       android:layout_width="0dp"
                       android:layout_height="wrap_content"
-                      android:text=""
+                      android:text="00:00"
                       android:gravity="center"
                       android:layout_weight="1.4"/>
         </LinearLayout>

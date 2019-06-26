@@ -168,14 +168,16 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
 
     override fun onStopTrackingTouch(seekBar: SeekBar) {
         userIsSeeking = false
-        MusicStreamingController.controlRequest("seek", "seekPosition", userSelectedPosition)
+        MusicStreamingController.controlSeekRequest(userSelectedPosition)
     }
 
-    override fun onPrepareCompleted(videoMeta: VideoMeta) {
+    override fun onPrepare(videoMeta: VideoMeta) {
         AsyncTask.execute {
             val bitmap = Glide.with(context!!).asBitmap().load(videoMeta.getMqImageUrl()).submit().get()
 
             activity?.runOnUiThread {
+                music_time.text = "00:00"
+                music_time_total.text = "00:00"
                 music_title.text = videoMeta.title
                 music_uploader.text = videoMeta.author
                 toolbar_music_title.text = videoMeta.title

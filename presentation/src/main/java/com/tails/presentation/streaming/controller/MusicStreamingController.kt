@@ -4,7 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Handler
-import android.os.PowerManager
+import android.util.Log
 import androidx.work.*
 import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.streaming.notification.MusicControlNotification
@@ -20,15 +20,15 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
 
         lateinit var playbackInfoListener: PlaybackInfoListener
 
-        private var mediaPlayer: MediaPlayer? = null
+        private lateinit var url: String
+        private lateinit var videoMeta: VideoMeta
 
-        lateinit var url: String
-        lateinit var videoMeta: VideoMeta
+        private var mediaPlayer: MediaPlayer? = null
 
         private val seekHandler = Handler()
 
-        val workManager = WorkManager.getInstance()
-        val musicControlBuilder =
+        private val workManager = WorkManager.getInstance()
+        private val musicControlBuilder =
             OneTimeWorkRequestBuilder<MusicStreamingController>().apply {
                 setConstraints(
                     Constraints.Builder()
@@ -47,12 +47,34 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
             )
         }
 
-        fun controlRequest(action: String, key: String, value: Int) {
+        fun controlSeekRequest(value: Int) {
             workManager.enqueue(
                 musicControlBuilder.setInputData(
                     Data.Builder()
-                        .putString("control", action)
-                        .putInt(key, value)
+                        .putString("control", "seek")
+                        .putInt("seekPosition", value)
+                        .build()
+                ).build()
+            )
+        }
+
+        fun controlReleaseRequest() {
+            MusicStreamingController.workManager.enqueue(
+                MusicStreamingController.musicControlBuilder.setInputData(
+                    Data.Builder()
+                        .putString("control", "release")
+                        .build()
+                ).build()
+            )
+        }
+
+        fun controlPrepareRequest(streamUrl: String, videoMeta: VideoMeta) {
+            this.videoMeta = videoMeta
+            MusicStreamingController.workManager.enqueue(
+                MusicStreamingController.musicControlBuilder.setInputData(
+                    Data.Builder()
+                        .putString("control", "load")
+                        .putString("streamUrl", streamUrl)
                         .build()
                 ).build()
             )
@@ -76,7 +98,6 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
-        playbackInfoListener.onPrepareCompleted(videoMeta)
         initializeProgressCallback()
         play()
     }
@@ -88,6 +109,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+        Log.e("asdf", what.toString())
         release()
         return false
     }
@@ -99,9 +121,10 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         initializeMediaPlayer()
 
         if (mediaPlayer != null) {
+            playbackInfoListener.onPrepare(videoMeta)
             url = streamUrl
-            mediaPlayer!!.setDataSource(streamUrl)
-            mediaPlayer!!.prepareAsync()
+            mediaPlayer?.setDataSource(streamUrl)
+            mediaPlayer?.prepareAsync()
         }
     }
 
@@ -144,11 +167,13 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
 
     override fun release() {
         if (mediaPlayer != null) {
-            mediaPlayer!!.stop()
-            mediaPlayer!!.release()
-            mediaPlayer = null
-            offSeekHandler()
-            MusicControlNotification.removeNotification(applicationContext)
+            if (mediaPlayer?.isPlaying!!) {
+                mediaPlayer?.stop()
+                mediaPlayer?.release()
+                mediaPlayer = null
+                offSeekHandler()
+                MusicControlNotification.removeNotification(applicationContext)
+            }
         }
     }
 
@@ -171,7 +196,6 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
             )
-            setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
             setOnPreparedListener(this@MusicStreamingController)
             setOnCompletionListener(this@MusicStreamingController)
             setOnErrorListener(this@MusicStreamingController)
@@ -200,7 +224,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
             try {
                 val currentPosition = mediaPlayer!!.currentPosition
                 playbackInfoListener.onPositionChanged(currentPosition)
-            } catch (e: IllegalStateException) {
+            } catch (e: Exception) {
             }
         }
     }

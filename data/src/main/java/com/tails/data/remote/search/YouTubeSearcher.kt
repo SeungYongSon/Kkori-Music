@@ -55,7 +55,6 @@ class YouTubeSearcher @Inject constructor() {
         }
 
         return if (matcher.find()) {
-            Log.e("asdf", matcher.group(1))
 
             val singleVideo = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_PART).apply {
                 key = YOUTUBE_API

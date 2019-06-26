@@ -23,6 +23,8 @@ interface PlaybackInfoListener {
         }
     }
 
+    fun onPrepare(videoMeta: VideoMeta)
+
     fun onDurationChanged(duration: Int)
 
     fun onPositionChanged(position: Int)
@@ -30,6 +32,4 @@ interface PlaybackInfoListener {
     fun onStateChanged(@State state: Int)
 
     fun onPlaybackCompleted()
-
-    fun onPrepareCompleted(videoMeta: VideoMeta)
 }
