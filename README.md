@@ -38,7 +38,7 @@ YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입�
 
 ### 🎯 Architecture Approach
 
-![screenshot](img/approach.png)
+![approach](img/approach.png)
 
 ### 🚀 Things in use and Things to be used
 
