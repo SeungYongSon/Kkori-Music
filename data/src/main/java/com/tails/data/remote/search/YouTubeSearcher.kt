@@ -1,6 +1,5 @@
 package com.tails.data.remote.search
 
-import android.util.Log
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.GenericJson
 import com.google.api.client.json.jackson2.JacksonFactory

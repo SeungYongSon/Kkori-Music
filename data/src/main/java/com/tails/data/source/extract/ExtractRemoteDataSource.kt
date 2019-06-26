@@ -36,8 +36,10 @@ class ExtractRemoteDataSource @Inject constructor(val context: Context) {
             override fun onExtractionComplete(ytFiles: SparseArray<YtFile>?, videoMeta: VideoMeta?) {
                 if (ytFiles != null) {
                     streamUrlSubject.onNext(getBestStream(ytFiles).url!!)
-                    streamUrlSubject.onComplete()
+                } else {
+                    streamUrlSubject.onNext("error")
                 }
+                streamUrlSubject.onComplete()
             }
         }.extract(videoId, true, false)
 

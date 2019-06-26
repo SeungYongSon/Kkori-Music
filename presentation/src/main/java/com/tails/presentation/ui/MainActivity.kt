@@ -1,5 +1,6 @@
 package com.tails.presentation.ui
 
+import android.content.Context
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
@@ -7,6 +8,7 @@ import android.os.Process
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.widget.SearchView
 import androidx.navigation.NavController
@@ -88,9 +90,9 @@ class MainActivity : DaggerAppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (playerBehavior.state == BottomSheetBehavior.STATE_EXPANDED)
+        if (playerBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
             playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
-        else {
+        } else {
             if (!isSearchBack) {
                 if (MusicStreamingController.isPlaying)
                     moveTaskToBack(true)

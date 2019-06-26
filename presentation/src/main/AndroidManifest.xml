@@ -16,7 +16,7 @@
         android:theme="@style/AppTheme">
         <activity android:name="com.tails.presentation.ui.MainActivity"
                   android:alwaysRetainTaskState="true"
-                  android:windowSoftInputMode="adjustPan">
+                  android:windowSoftInputMode="adjustPan|stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

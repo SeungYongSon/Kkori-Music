@@ -2,6 +2,7 @@ package com.tails.presentation
 
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
 import com.tails.domain.entity.VideoMeta
 import com.tails.domain.usecase.extract.ExtractStreamingUrlUseCase
 import com.tails.presentation.di.DaggerAppComponent
@@ -66,13 +67,25 @@ class KkoriApplication : DaggerApplication(), HasActivityInjector {
     }
 
     fun prepare(videoMeta: VideoMeta) {
-        MusicStreamingController.playbackInfoListener.onPrepare(videoMeta)
+        MusicStreamingController.isPrepare = true
         MusicStreamingController.controlReleaseRequest()
+        MusicStreamingController.playbackInfoListener.onPrepare(videoMeta)
         compositeDisposable.add(
             extractStreamingUrlUseCase.createObservable(ExtractStreamingUrlUseCase.Params(videoMeta.videoId))
                 .subscribe({
-                    MusicStreamingController.controlPrepareRequest(it, videoMeta)
-                }, { Log.e("asdf", it.message) })
+                    if ("error" != it) {
+                        MusicStreamingController.controlPrepareRequest(it, videoMeta)
+                    } else {
+                        MusicStreamingController.isPrepare = false
+                        MusicStreamingController.playbackInfoListener.onError()
+                        Toast.makeText(applicationContext, "예기치 못한 오류가 발생했습니다.\n나중에 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                    }
+                }, {
+                    MusicStreamingController.isPrepare = false
+                    MusicStreamingController.playbackInfoListener.onError()
+                    Toast.makeText(applicationContext, "예기치 못한 오류가 발생했습니다.\n나중에 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                    Log.e("asdf", it.message)
+                })
         )
     }
 }

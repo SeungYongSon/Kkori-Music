@@ -5,12 +5,14 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.KkoriApplication
 import com.tails.presentation.R
+import com.tails.presentation.streaming.controller.MusicStreamingController
 import com.tails.presentation.ui.search.adapter.diff.VideoMetaDiffCallback
 import kotlinx.android.synthetic.main.item_music_list.view.*
 
@@ -38,7 +40,11 @@ class MusicListAdapter(private val kkoriApplication: KkoriApplication) :
             holder.itemView.title.text = list[position].title
             holder.itemView.uploader.text = list[position].author
             holder.itemView.setOnClickListener {
-                kkoriApplication.prepare(list[position])
+                if (!MusicStreamingController.isPrepare) {
+                    kkoriApplication.prepare(list[position])
+                } else {
+                    Toast.makeText(holder.itemView.context, "로딩중인 노래가 있습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     companion object {
+        var isPrepare = false
         val isPlaying: Boolean
             get() = if (mediaPlayer != null) mediaPlayer!!.isPlaying else false
 
@@ -110,6 +111,8 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         Log.e("asdf", what.toString())
+        playbackInfoListener.onError()
+        isPrepare = false
         release()
         return false
     }
@@ -121,7 +124,6 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         initializeMediaPlayer()
 
         if (mediaPlayer != null) {
-            playbackInfoListener.onPrepare(videoMeta)
             url = streamUrl
             mediaPlayer?.setDataSource(streamUrl)
             mediaPlayer?.prepareAsync()
@@ -132,6 +134,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         val mediaPlayer = mediaPlayer
 
         if (mediaPlayer != null) {
+            isPrepare = false
             mediaPlayer.start()
             playbackInfoListener.onStateChanged(PlaybackInfoListener.State.PLAYING)
             MusicControlNotification.showNotification(applicationContext, videoMeta)

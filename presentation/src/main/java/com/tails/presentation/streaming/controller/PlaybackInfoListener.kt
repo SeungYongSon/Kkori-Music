@@ -32,4 +32,7 @@ interface PlaybackInfoListener {
     fun onStateChanged(@State state: Int)
 
     fun onPlaybackCompleted()
+
+    fun onError()
+
 }

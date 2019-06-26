@@ -35,7 +35,8 @@ class SearchViewModel(
             searchUseCase.createObservable(SearchUseCase.Params(keyword))
                 .subscribe({ searchSuccess(it) }, {
                     Log.e("zxcv", it.message)
-                    searchFail() })
+                    searchFail()
+                })
         )
     }
 
@@ -44,7 +45,8 @@ class SearchViewModel(
             searchUseCase.createObservable(SearchUseCase.Params(keyword, nextPageToken))
                 .subscribe({ searchSuccess(it) }, {
                     Log.e("qwer", it.message)
-                    searchFail() })
+                    searchFail()
+                })
         )
     }
 
@@ -72,7 +74,8 @@ class SearchViewModel(
                         }
                     }, {
                         Log.e("asdf", it.message)
-                    }))
+                    })
+                )
             }
         } else {
             searchFail()
@@ -93,6 +96,7 @@ class SearchViewModel(
                     nextPageToken = ""
                     isLoading = true
                     compositeDisposable.clear()
+                    resultList.clear()
                     startSearchSingleLiveEvent.call()
                     search(s)
                 }
@@ -105,7 +109,7 @@ class SearchViewModel(
 
     val endlessRecyclerOnScrollListener = object : EndlessRecyclerOnScrollListener() {
         override fun onLoadMore() {
-            if (nextPageToken != "" && searchCount == 0 && !isLoading) {
+            if (nextPageToken.isNotEmpty() && searchCount == 0 && !isLoading) {
                 search(lastSearch, nextPageToken)
                 nextPageToken = ""
                 isLoading = true

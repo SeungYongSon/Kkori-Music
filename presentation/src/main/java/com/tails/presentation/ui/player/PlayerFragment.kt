@@ -9,6 +9,7 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.transition.Fade
 import androidx.transition.Slide
 import androidx.transition.TransitionManager
@@ -109,7 +110,7 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
                                 statusBarColor = Color.argb(255, 250, 250, 250)
                                 setSystemBarTheme(decorView, false)
                             }
-                            MusicStreamingController.controlRequest("release")
+                            MusicStreamingController.controlReleaseRequest()
                             resultList?.setPadding(0, 0, 0, 0)
                         }
                     }
@@ -139,16 +140,27 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.music_pause ->
-                if (MusicStreamingController.isPlaying)
-                    MusicStreamingController.controlRequest("pause")
-                else
-                    MusicStreamingController.controlRequest("play")
-            R.id.toolbar_pause ->
-                if (MusicStreamingController.isPlaying)
-                    MusicStreamingController.controlRequest("pause")
-                else
-                    MusicStreamingController.controlRequest("play")
+            R.id.music_pause -> {
+                if (!MusicStreamingController.isPrepare) {
+                    if (MusicStreamingController.isPlaying)
+                        MusicStreamingController.controlRequest("pause")
+                    else
+                        MusicStreamingController.controlRequest("play")
+                } else {
+                    Toast.makeText(context, "노래를 로딩중 입니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            R.id.toolbar_pause -> {
+                if (!MusicStreamingController.isPrepare) {
+                    if (MusicStreamingController.isPlaying)
+                        MusicStreamingController.controlRequest("pause")
+                    else
+                        MusicStreamingController.controlRequest("play")
+                } else {
+                    Toast.makeText(context, "노래를 로딩중 입니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
             R.id.toolbar_cancel -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
             R.id.music_down -> (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             R.id.toolbar_collapse -> (activity as MainActivity).playerBehavior.state =
@@ -243,6 +255,11 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
                 }, bitmap)
             }
         }
+    }
+
+    override fun onError() {
+        (activity as MainActivity).playerBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        Toast.makeText(context, "로딩중 에러가 발생했습니다.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDurationChanged(duration: Int) {
