@@ -262,6 +262,10 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
         Toast.makeText(context, "로딩중 에러가 발생했습니다.", Toast.LENGTH_SHORT).show()
     }
 
+    override fun onBufferingDurationChanged(duration: Int) {
+        music_seek.secondaryProgress = duration
+    }
+
     override fun onDurationChanged(duration: Int) {
         activity?.runOnUiThread {
             music_seek.max = duration

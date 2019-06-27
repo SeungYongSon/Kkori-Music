@@ -3,7 +3,9 @@ package com.tails.presentation.streaming.controller
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.wifi.WifiManager
 import android.os.Handler
+import android.os.PowerManager
 import android.util.Log
 import androidx.work.*
 import com.tails.domain.entity.VideoMeta
@@ -12,7 +14,8 @@ import javax.inject.Inject
 
 class MusicStreamingController @Inject constructor(context: Context, workerParameters: WorkerParameters) :
     Worker(context, workerParameters),
-    PlayerAdapter, MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+    PlayerAdapter, MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnPreparedListener,
+    MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 
     companion object {
         var isPrepare = false
@@ -37,6 +40,8 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
                         .build()
                 )
             }
+
+        private lateinit var wifiLock: WifiManager.WifiLock
 
         fun controlRequest(action: String) {
             workManager.enqueue(
@@ -96,6 +101,13 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         Result.success()
     } catch (e: Exception) {
         Result.failure()
+    }
+
+    override fun onBufferingUpdate(mp: MediaPlayer?, percent: Int) {
+        val ratio = percent / 100.0
+        val bufferingLevel = (mp?.duration!! * ratio).toInt()
+
+        playbackInfoListener.onBufferingDurationChanged(bufferingLevel)
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
@@ -171,6 +183,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     override fun release() {
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying!!) {
+                wifiLock.release()
                 mediaPlayer?.stop()
                 mediaPlayer?.release()
                 mediaPlayer = null
@@ -202,8 +215,15 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
             setOnPreparedListener(this@MusicStreamingController)
             setOnCompletionListener(this@MusicStreamingController)
             setOnErrorListener(this@MusicStreamingController)
+            setOnBufferingUpdateListener(this@MusicStreamingController)
+            setWakeMode(applicationContext, PowerManager.PARTIAL_WAKE_LOCK)
             isLooping = true
         }
+
+        val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock")
+
+        wifiLock.acquire()
     }
 
     private fun onSeekHandler() {

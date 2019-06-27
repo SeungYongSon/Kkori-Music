@@ -27,6 +27,8 @@ interface PlaybackInfoListener {
 
     fun onDurationChanged(duration: Int)
 
+    fun onBufferingDurationChanged(duration: Int)
+
     fun onPositionChanged(position: Int)
 
     fun onStateChanged(@State state: Int)

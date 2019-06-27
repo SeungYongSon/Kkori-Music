@@ -1,6 +1,5 @@
 package com.tails.presentation.ui
 
-import android.content.Context
 import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
@@ -8,7 +7,6 @@ import android.os.Process
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.widget.SearchView
 import androidx.navigation.NavController
