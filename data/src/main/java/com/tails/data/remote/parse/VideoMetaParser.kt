@@ -12,7 +12,7 @@ class VideoMetaParser @Inject constructor() {
 
     private val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(1, TimeUnit.MINUTES)
-        .readTimeout(5, TimeUnit.MINUTES)
+        .readTimeout(1, TimeUnit.MINUTES)
         .build()
 
     fun parse(videoID: String): Single<Response> {

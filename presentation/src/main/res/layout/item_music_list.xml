@@ -35,9 +35,8 @@
                   android:layout_width="match_parent"
                   android:layout_height="0dp"
                   android:text=""
-                  android:focusable="true"
-                  android:ellipsize="marquee"
-                  android:marqueeRepeatLimit="marquee_forever"
+                  android:ellipsize="end"
+                  android:maxLines="1"
                   android:layout_weight="0.25"
                   android:textSize="14sp"/>
 

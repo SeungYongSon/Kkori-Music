@@ -77,7 +77,13 @@ class SearchViewModel(
 //                            resultList.clear()
                         }
                     }, {
-                        Log.e("asdf", it.message)
+                        searchCount--
+                        if (searchCount == 0) {
+                            isLoading = false
+//                            parseSuccessSingleLiveEvent.value = resultList
+                            searchEndSingleLiveEvent.call()
+//                            resultList.clear()
+                        }
                     })
                 )
             }

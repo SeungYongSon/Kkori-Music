@@ -16,6 +16,7 @@ import androidx.transition.TransitionManager
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.tails.domain.entity.VideoMeta
+import com.tails.presentation.KkoriApplication
 import com.tails.presentation.R
 import com.tails.presentation.databinding.FragmentPlayerBinding
 import com.tails.presentation.streaming.controller.MusicStreamingController
@@ -111,6 +112,7 @@ class PlayerFragment : BindingFragment<FragmentPlayerBinding>(),
                                 setSystemBarTheme(decorView, false)
                             }
                             MusicStreamingController.controlReleaseRequest()
+                            (application as KkoriApplication).cancelPrepare()
                             resultList?.setPadding(0, 0, 0, 0)
                         }
                     }
