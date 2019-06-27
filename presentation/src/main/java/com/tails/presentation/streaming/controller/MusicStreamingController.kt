@@ -104,10 +104,15 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     }
 
     override fun onBufferingUpdate(mp: MediaPlayer?, percent: Int) {
-        val ratio = percent / 100.0
-        val bufferingLevel = (mp?.duration!! * ratio).toInt()
+        if (mp != null) {
+            if(!isPrepare) {
 
-        playbackInfoListener.onBufferingDurationChanged(bufferingLevel)
+                val ratio = percent / 100.0
+                val bufferingLevel = (mp.duration * ratio).toInt()
+
+                playbackInfoListener.onBufferingDurationChanged(bufferingLevel)
+            }
+        }
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
@@ -184,7 +189,6 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying!!) {
                 wifiLock.release()
-                mediaPlayer?.stop()
                 mediaPlayer?.release()
                 mediaPlayer = null
                 offSeekHandler()

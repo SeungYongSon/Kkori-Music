@@ -22,13 +22,14 @@ class SearchViewModel(
     private var lastSearch = ""
     private var isLoading = false
 
-    private val resultList = ArrayList<VideoMeta>()
+//    private val resultList = ArrayList<VideoMeta>()
 
     val startSearchSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchFailSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchNextPageLoadSingleLiveEvent = SingleLiveEvent<Unit>()
     val searchEndSingleLiveEvent = SingleLiveEvent<Unit>()
-    val parseSuccessSingleLiveEvent = SingleLiveEvent<List<VideoMeta>>()
+    //    val parseSuccessSingleLiveEvent = SingleLiveEvent<List<VideoMeta>>()
+    val parseSuccessSingleLiveEvent = SingleLiveEvent<VideoMeta>()
 
     fun search(keyword: String) {
         compositeDisposable.add(
@@ -62,15 +63,18 @@ class SearchViewModel(
                         SearchResultParseUseCase.Params(id)
                     ).subscribe({ result ->
                         Log.e("asdf", searchCount.toString())
-                        if (result != null) resultList.add(result)
+                        if (result != null) {
+//                            resultList.add(result)
+                            parseSuccessSingleLiveEvent.value = result
+                        }
 
                         searchCount--
 
                         if (searchCount == 0) {
                             isLoading = false
-                            parseSuccessSingleLiveEvent.value = resultList
+//                            parseSuccessSingleLiveEvent.value = resultList
                             searchEndSingleLiveEvent.call()
-                            resultList.clear()
+//                            resultList.clear()
                         }
                     }, {
                         Log.e("asdf", it.message)
@@ -96,7 +100,7 @@ class SearchViewModel(
                     nextPageToken = ""
                     isLoading = true
                     compositeDisposable.clear()
-                    resultList.clear()
+//                    resultList.clear()
                     startSearchSingleLiveEvent.call()
                     search(s)
                 }
