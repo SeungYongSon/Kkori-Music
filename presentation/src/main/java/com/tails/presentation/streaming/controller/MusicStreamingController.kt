@@ -6,7 +6,6 @@ import android.media.MediaPlayer
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.PowerManager
-import android.util.Log
 import androidx.work.*
 import com.tails.domain.entity.VideoMeta
 import com.tails.presentation.streaming.notification.MusicControlNotification
@@ -42,6 +41,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
             }
 
         private lateinit var wifiLock: WifiManager.WifiLock
+        private lateinit var wakeLock: PowerManager.WakeLock
 
         fun controlRequest(action: String) {
             workManager.enqueue(
@@ -105,7 +105,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
 
     override fun onBufferingUpdate(mp: MediaPlayer?, percent: Int) {
         if (mp != null) {
-            if(!isPrepare) {
+            if (!isPrepare) {
 
                 val ratio = percent / 100.0
                 val bufferingLevel = (mp.duration * ratio).toInt()
@@ -127,7 +127,6 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
-        Log.e("asdf", what.toString())
         playbackInfoListener.onError()
         isPrepare = false
         release()
@@ -189,6 +188,7 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying!!) {
                 wifiLock.release()
+                wakeLock.release()
                 mediaPlayer?.release()
                 mediaPlayer = null
                 offSeekHandler()
@@ -225,8 +225,12 @@ class MusicStreamingController @Inject constructor(context: Context, workerParam
         }
 
         val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-        wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock")
+        wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL, MusicStreamingController::class.java.name)
         wifiLock.acquire()
+
+        val powerManager = applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, MusicStreamingController::class.java.name)
+        wakeLock.acquire()
     }
 
     private fun onSeekHandler() {
