@@ -62,7 +62,6 @@ class SearchViewModel(
                     searchResultParseUseCase.createObservable(
                         SearchResultParseUseCase.Params(id)
                     ).subscribe({ result ->
-                        Log.e("asdf", searchCount.toString())
                         if (result != null) {
 //                            resultList.add(result)
                             parseSuccessSingleLiveEvent.value = result

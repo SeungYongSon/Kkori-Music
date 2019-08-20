@@ -11,12 +11,13 @@ object VideoMetaParseUtil {
 
     const val USER_AGENT =
         "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36"
-    private val patTitle = Pattern.compile("title=(.*?)(&|\\z)")
-    private val patAuthor = Pattern.compile("author=(.+?)(&|\\z)")
-    private val patChannelId = Pattern.compile("ucid=(.+?)(&|\\z)")
-    private val patLength = Pattern.compile("length_seconds=(\\d+?)(&|\\z)")
-    private val patViewCount = Pattern.compile("view_count=(\\d+?)(&|\\z)")
-    private val patHlsvp = Pattern.compile("hlsv p=(.+?)(&|\\z)")
+
+    private val patTitle = Pattern.compile("title%22%3A%22(.*?)(%22|\\z)")
+    private val patAuthor = Pattern.compile("author%22%3A%22(.+?)(%22|\\z)")
+    private val patChannelId = Pattern.compile("channelId%22%3A%22(.+?)(%22|\\z)")
+    private val patLength = Pattern.compile("lengthSeconds%22%3A%22(\\d+?)(%22|\\z)")
+    private val patViewCount = Pattern.compile("viewCount%22%3A%22(\\d+?)(%22|\\z)")
+    private val patHlsvp = Pattern.compile("hlsvp=(.+?)(&|\\z)")
 
     @Throws(UnsupportedEncodingException::class)
     internal fun parseVideoMeta(getVideoInfo: String, videoID: String): VideoMetaEntity {

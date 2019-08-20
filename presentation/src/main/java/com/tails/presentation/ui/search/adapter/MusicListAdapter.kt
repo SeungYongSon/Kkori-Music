@@ -2,6 +2,7 @@ package com.tails.presentation.ui.search.adapter
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,13 +31,14 @@ class MusicListAdapter(private val kkoriApplication: KkoriApplication) :
     }
 
     override fun getItemViewType(position: Int): Int =
-        if (list[position].channelId.isNotEmpty()) 1 else 0
+        if (list[position].videoId.isNotEmpty()) 1 else 0
 
     override fun getItemCount(): Int = list.size
 
     override fun onBindViewHolder(holder: SearchViewHolder, position: Int) {
         if (getItemViewType(position) == 1) {
             Glide.with(holder.itemView).load(list[position].getHqImageUrl()).into(holder.itemView.image)
+            Log.e("asdf", list[position].title)
             holder.itemView.title.text = list[position].title
             holder.itemView.uploader.text = list[position].author
             holder.itemView.setOnClickListener {
