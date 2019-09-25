@@ -10,8 +10,25 @@ android:
         - extra-google-google_play_services
         - extra-google-m2repository
         - extra-android-m2repository
-before_script:
-    - chmod +x gradlew connectedCheck
+cache:
+    directories:
+        - ${TRAVIS_BUILD_DIR}/gradle/caches/
+        - ${TRAVIS_BUILD_DIR}/gradle/wrapper/dists/
+        - ${TRAVIS_BUILD_DIR}/android-sdk/extras/
+env:
+    global:
+        - GRADLE_USER_HOME=${TRAVIS_BUILD_DIR}/gradle
+        - ANDROID_HOME=${TRAVIS_BUILD_DIR}/android-sdk
+        - SDK=${TRAVIS_BUILD_DIR}/android-sdk
+        - PATH=${GRADLE_USER_HOME}/bin/:${SDK}/:${SDK}/tools/:${SDK}/platform-tools/:${PATH}
+
+before_install:
+    - echo "WARNING delete this when fixed"; export OLD_SDK=/usr/local/android-sdk-23.0.2;
+        mkdir -p ${SDK};
+        cp -u -R ${OLD_SDK}/platforms ${SDK}/platforms;
+        cp -u -R ${OLD_SDK}/system-images ${SDK}/system-images;
+        cp -u -R ${OLD_SDK}/tools ${SDK}/tools || echo "C
 script:
+    - chmod +x gradlew
     - ./gradlew androidDependencies
     - ./gradlew lint test
