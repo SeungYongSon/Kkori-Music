@@ -1,5 +1,7 @@
 # Kkori Music
 
+[![Build Status](https://travis-ci.org/SeungYongSon/Kkori-Music.svg?branch=master)](https://travis-ci.org/SeungYongSon/Kkori-Music)
+
 ## ⚠ Warning
 
 본 프로젝트가 접근하는 모든 동영상의 저작권은 실제 서비스를 담당하는 업체에 있으며,  
@@ -15,6 +17,16 @@ YouTube Data API 와 Youtube Extractor 를 활용한 음악 스트리밍 앱입�
 ### 🏆 Goal
 
 **"엥? 이거 완전 YouTube Music 아니야?"** 할 정도의 퀼리티  
+
+### 🔑 API Key
+signing 폴더에 key.properties 를 생성하고, 아래와 같이 value 를 추가 해주세요!
+
+```
+# YouTube Data API
+# Reference Site -> https://developers.google.com/youtube/v3
+
+YOUTUBE_DATA_API = "Your YouTube Data API Key"
+```
 
 ### 🚧 Current problems and Future functions
 
