@@ -16,3 +16,4 @@ before_install:
     - yes | sdkmanager --licenses
 script:
     - ./gradlew androidDependencies
+    - ./gradlew build

@@ -1,5 +1,6 @@
 # Kkori Music
 
+[![Platform](http://img.shields.io/badge/platform-android-green.svg?style=flat)](https://developer.android.com)
 [![Build Status](https://travis-ci.org/SeungYongSon/Kkori-Music.svg?branch=master)](https://travis-ci.org/SeungYongSon/Kkori-Music)
 
 ## ⚠ Warning
