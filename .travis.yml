@@ -10,14 +10,8 @@ android:
         - extra-google-google_play_services
         - extra-google-m2repository
         - extra-android-m2repository
-jobs:
-    include:
-        - stage: chmod permissions
-          name : Permissions
-          script: "chmod +x gradlew"
-        - stage: Download Dependencies
-          name: Dependencies
-          script: "/gradlew androidDependencies"
-        - stage: Run tests
-          name: Test
-          script: "./gradlew lint test"
+before_script:
+    - chmod +x gradlew connectedCheck
+script:
+    - ./gradlew androidDependencies
+    - ./gradlew lint test
