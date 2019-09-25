@@ -260,4 +260,4 @@ cmake-build-*/
 .idea/codeStyles
 .idea/runConfigurations.xml
 
-data/src/main/java/com/tails/data/remote/search/YOUTUBE_API.kt
+signing/key.properties

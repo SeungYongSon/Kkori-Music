@@ -4,6 +4,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.GenericJson
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.youtube.YouTube
+import com.tails.data.BuildConfig
 import io.reactivex.Single
 import java.util.*
 import java.util.regex.Pattern
@@ -19,11 +20,10 @@ class YouTubeSearcher @Inject constructor() {
 
         private var searchList: YouTube.Search.List =
             youtube.search().list(SearchConfig.YOUTUBE_SEARCH_LIST_PART).let {
-                it.key = YOUTUBE_API
+                it.key = BuildConfig.YOUTUBE_API
                 it.type = SearchConfig.YOUTUBE_SEARCH_LIST_TYPE
                 it.maxResults = SearchConfig.YOUTUBE_MAX_RESULTS
                 it.fields = SearchConfig.YOUTUBE_SEARCH_LIST_FIELDS
-//                it.order = SearchConfig.YOUTUBE_SEARCH_LIST_ORDERS
                 it.set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
             }
     }
@@ -56,7 +56,7 @@ class YouTubeSearcher @Inject constructor() {
         return if (matcher.find()) {
 
             val singleVideo = youtube.videos().list(SearchConfig.YOUTUBE_VIDEO_PART).apply {
-                key = YOUTUBE_API
+                key = BuildConfig.YOUTUBE_API
                 fields = SearchConfig.YOUTUBE_VIDEO_FIELDS
                 set(SearchConfig.YOUTUBE_LANGUAGE_KEY, Locale.getDefault().language)
                 id = matcher.group(1)
