@@ -12,7 +12,7 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField 'String', 'YOUTUBE_API', propOrDef("YOUTUBE_DATA_API", "")
+        buildConfigField 'String', 'YOUTUBE_API', propOrDef("YOUTUBE_DATA_API", '""')
     }
     buildTypes {
         release {
